@@ -3,83 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER v34.0 | FINAL</title>
-    <!-- Mobile App Settings -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <script src="https://unpkg.com"></script>
+    <title>AI SNIPER v34.0 | TERMINAL</title>
+    <!-- Stable Library Load -->
+    <script src="https://jsdelivr.net"></script>
     <style>
         :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; }
-        body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; touch-action: manipulation; }
-        
+        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; overflow: hidden; touch-action: manipulation; }
         .nav { background: var(--card); padding: 10px; display: flex; gap: 8px; border-bottom: 2px solid var(--neon); height: 50px; align-items: center; box-sizing: border-box; }
-        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; font-size: 12px; outline: none; }
-        .set-btn { background: var(--neon); border: none; font-weight: 900; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-
+        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; font-size: 12px; outline: none; flex-grow: 1; }
+        .set-btn { background: var(--neon); border: none; font-weight: 900; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 11px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: calc(100vh - 50px); padding: 5px; box-sizing: border-box; }
         .block { background: var(--card); border-radius: 12px; display: flex; flex-direction: column; position: relative; border: 1px solid #1a1f26; overflow: hidden; }
-        
-        .chart-container { flex-grow: 1; position: relative; width: 100%; }
-        .overlay { position: absolute; top: 8px; left: 8px; z-index: 10; pointer-events: none; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; }
-        .asset-name { font-size: 10px; font-weight: bold; color: var(--blue); }
-        .price { font-size: 16px; font-weight: 900; color: var(--neon); font-family: monospace; }
-        
-        .signal { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 85%; text-align: center; padding: 6px; border-radius: 6px; font-weight: 900; font-size: 16px; background: rgba(0,0,0,0.85); z-index: 20; border: 1px solid #333; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        .smc-info { position: absolute; top: 40px; left: 8px; font-size: 8px; color: #888; z-index: 10; }
+        .chart-container { flex-grow: 1; position: relative; width: 100%; background: #0d1117; }
+        .overlay { position: absolute; top: 8px; left: 8px; z-index: 10; pointer-events: none; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 4px; border: 1px solid #222; }
+        .price { font-size: 14px; font-weight: 900; color: var(--neon); font-family: monospace; }
+        .signal { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 85%; text-align: center; padding: 8px; border-radius: 6px; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.9); z-index: 20; border: 1px solid #333; }
+        .smc-info { position: absolute; top: 45px; left: 8px; font-size: 8px; color: #888; z-index: 10; }
     </style>
 </head>
 <body>
 
 <div class="nav">
-    <input type="number" id="block-id" value="1" style="width:40px">
-    <input type="text" id="asset-sym" placeholder="BTCUSDT" style="flex-grow:1">
+    <input type="number" id="block-id" value="1" style="max-width:40px">
+    <input type="text" id="asset-sym" placeholder="BTCUSDT">
     <button class="set-btn" onclick="changeAsset()">SET ASSET</button>
 </div>
 
 <div class="grid" id="ui-grid"></div>
 
-<audio id="beep" src="https://mixkit.co"></audio>
-
 <script>
     const KEY = 'd7rir1pr01qgahvdpft0d7rir1pr01qgahvdpftg';
-    let charts = {}, series = {}, sockets = {};
+    let charts = {}, series = {}, sockets = {}, lastP = {};
     const pairs = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
 
     function initSystem() {
         const grid = document.getElementById('ui-grid');
+        grid.innerHTML = '';
         pairs.forEach((sym, i) => {
             let id = i + 1;
             grid.innerHTML += `
                 <div class="block">
                     <div class="overlay">
-                        <div class="asset-name" id="label-${id}">${sym}</div>
+                        <div style="font-size:9px;color:var(--blue);font-weight:bold" id="label-${id}">${sym}</div>
                         <div class="price" id="price-${id}">0.00</div>
                     </div>
-                    <div class="smc-info" id="smc-${id}">SCANNING SMC STRUCTURE...</div>
+                    <div class="smc-info" id="smc-${id}">SYNCING DATA...</div>
                     <div class="chart-container" id="chart-${id}"></div>
-                    <div class="signal" id="sig-${id}">WAITING...</div>
+                    <div class="signal" id="sig-${id}">SCANNING...</div>
                 </div>`;
-            setTimeout(() => createChart(id, sym), 200);
+            setTimeout(() => createChart(id, sym), 500);
         });
     }
 
     function createChart(id, symbol) {
-        charts[id] = LightweightCharts.createChart(document.getElementById(`chart-${id}`), {
+        const container = document.getElementById(`chart-${id}`);
+        if(!container) return;
+        
+        charts[id] = LightweightCharts.createChart(container, {
             layout: { backgroundColor: 'transparent', textColor: '#666', fontSize: 10 },
             grid: { vertLines: { visible: false }, horzLines: { color: '#161b22' } },
-            timeScale: { timeVisible: true, secondsVisible: true, borderVisible: false },
+            timeScale: { timeVisible: true, secondsVisible: true },
             rightPriceScale: { borderVisible: false },
-            handleScale: false, handleScroll: true
+            handleScale: false,
+            handleScroll: true
         });
 
         series[id] = charts[id].addCandlestickSeries({
             upColor: '#00ff88', downColor: '#ff4d4d', borderVisible: false, wickUpColor: '#00ff88', wickDownColor: '#ff4d4d'
         });
 
-        startLiveStream(id, symbol);
+        startStream(id, symbol);
     }
 
-    function startLiveStream(id, symbol) {
+    function startStream(id, symbol) {
         if(sockets[id]) sockets[id].close();
         sockets[id] = new WebSocket(`wss://ws.finnhub.io?token=${KEY}`);
 
@@ -94,34 +90,25 @@
                 const p = data.p;
                 document.getElementById(`price-${id}`).innerText = p.toFixed(2);
                 series[id].update({ time: Math.floor(data.t / 1000), open: p, high: p, low: p, close: p });
-                runAnalysis(id, p);
+                
+                let diff = p - (lastP[id] || p);
+                if(Math.abs(diff) > (p * 0.0001)) {
+                    let isUp = diff > 0;
+                    document.getElementById(`sig-${id}`).innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
+                    document.getElementById(`sig-${id}`).style.color = isUp ? "var(--neon)" : "var(--danger)";
+                    document.getElementById(`smc-${id}`).innerText = isUp ? "SMC: BULLISH BOS" : "SMC: LIQ SWEEP";
+                }
+                lastP[id] = p;
             }
         };
     }
 
-    let lastP = {};
-    function runAnalysis(id, currentP) {
-        let sig = document.getElementById(`sig-${id}`);
-        let smc = document.getElementById(`smc-${id}`);
-        let diff = currentP - (lastP[id] || currentP);
-        
-        // Final SMC/FVG Analysis Logic
-        if(Math.abs(diff) > (currentP * 0.0001)) {
-            let isUp = diff > 0;
-            sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
-            sig.style.color = isUp ? "var(--neon)" : "var(--danger)";
-            smc.innerText = isUp ? "SMC: BULLISH BOS / FVG" : "SMC: LIQUIDITY SWEEP";
-            document.getElementById('beep').play();
-        }
-        lastP[id] = currentP;
-    }
-
     function changeAsset() {
         let id = document.getElementById('block-id').value;
-        let sym = document.getElementById('asset-sym').value.toUpperCase();
+        let sym = document.getElementById('asset-sym').value.toUpperCase().trim();
         if(sym && id <= 4) {
             document.getElementById(`label-${id}`).innerText = sym;
-            startLiveStream(id, sym);
+            startStream(id, sym);
         }
     }
 
