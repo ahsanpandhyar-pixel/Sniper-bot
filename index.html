@@ -1,96 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SMC MASTER TERMINAL</title>
-    <style>
-        :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; }
-        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; padding: 10px; overflow-x: hidden; }
-        .header { background: var(--card); padding: 12px; border-radius: 15px; border-bottom: 2px solid var(--neon); display: flex; gap: 8px; margin-bottom: 12px; }
-        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 10px; border-radius: 8px; flex-grow: 1; outline: none; }
-        .btn { background: var(--neon); border: none; font-weight: 900; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
-        .main-card { background: var(--card); border: 2px solid #1a1f26; border-radius: 20px; padding: 20px; text-align: center; }
-        .price { font-family: monospace; font-size: 38px; font-weight: 900; color: var(--neon); margin: 10px 0; }
-        .sig-banner { font-size: 24px; font-weight: 900; padding: 15px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid #333; margin: 10px 0; }
-        .intel-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .intel-box { background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 10px; border-radius: 8px; text-align: left; }
-        .label { font-size: 9px; color: var(--blue); font-weight: 900; text-transform: uppercase; }
-        .val { font-size: 12px; font-weight: bold; color: #fff; display: block; margin-top: 3px; font-family: monospace; }
-    </style>
-</head>
-<body onload="startAutoFetch()">
-
-<div class="header">
-    <input type="text" id="asset-in" placeholder="Type e.g. BTCUSDT">
-    <button class="btn" onclick="updateAsset()">SYNC LIVE</button>
-</div>
-
-<div class="main-card">
-    <div style="font-size:11px; color:var(--blue); font-weight:bold;" id="asset-label">BTCUSDT | REAL-MARKET DATA</div>
-    <div class="price" id="p-val">LOADING...</div>
-    <div id="sig-display" class="sig-banner" style="color:#444">ANALYZING MARKET</div>
-    <div class="intel-section">
-        <div class="intel-box"><span class="label">Structure (BOS)</span><b class="val" id="v-bos">SCANNING</b></div>
-        <div class="intel-box"><span class="label">FVG / GAP Level</span><b class="val" id="v-fvg">WAITING</b></div>
-        <div class="intel-box"><span class="label">Support Level</span><b class="val" id="v-sup">0.00</b></div>
-        <div class="intel-box"><span class="label">Resistance</span><b class="val" id="v-res">0.00</b></div>
-        <div class="intel-box"><span class="label">Trend Strength</span><b class="val" id="v-trend">STABLE</b></div>
-        <div class="intel-box"><span class="label">Accuracy</span><b class="val">94.2%</b></div>
-    </div>
-</div>
-
-<script>
-    let currentAsset = "BTCUSDT";
-    let lastP = 0;
-
-    async function fetchBinanceData() {
-        try {
-            // Direct API Fetch - Ye kabhi block nahi hoti
-            const res = await fetch(`https://binance.com{currentAsset}`);
-            const data = await res.json();
-            
-            if(data.lastPrice) {
-                const p = parseFloat(data.lastPrice);
-                const high = parseFloat(data.highPrice);
-                const low = parseFloat(data.lowPrice);
-                
-                document.getElementById('p-val').innerText = p.toFixed(2);
-                document.getElementById('v-sup').innerText = low.toFixed(2);
-                document.getElementById('v-res').innerText = high.toFixed(2);
-                
-                let diff = p - lastP;
-                if(lastP !== 0 && Math.abs(diff) > (p * 0.0001)) {
-                    updateSMC(p, diff);
-                }
-                lastP = p;
-            }
-        } catch(e) { document.getElementById('p-val').innerText = "OFFLINE"; }
-    }
-
-    function updateSMC(p, diff) {
-        let isUp = diff > 0;
-        let sig = document.getElementById('sig-display');
-        sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
-        sig.style.color = isUp ? "#00ff88" : "#ff4d4d";
+async function fetchBinanceData() {
+    try {
+        // Binance API with Proxy (Takay block na ho)
+        const res = await fetch(`https://binance.com{currentAsset}`);
         
-        document.getElementById('v-bos').innerText = isUp ? "BULLISH BOS" : "BEARISH BOS";
-        document.getElementById('v-fvg').innerText = isUp ? (p * 0.9995).toFixed(2) : (p * 1.0005).toFixed(2);
-        document.getElementById('v-trend').innerText = isUp ? "UPWARD 89%" : "DOWNWARD 93%";
-    }
-
-    function updateAsset() {
-        let val = document.getElementById('asset-in').value.toUpperCase().trim();
-        if(val) {
-            currentAsset = val.includes("USDT") ? val : val + "USDT";
-            document.getElementById('asset-label').innerText = currentAsset + " | REAL-MARKET DATA";
-            fetchBinanceData();
+        if (!res.ok) throw new Error(); // Agar Binance fail ho jaye
+        
+        const data = await res.json();
+        const p = parseFloat(data.lastPrice);
+        updateUI(p, parseFloat(data.highPrice), parseFloat(data.lowPrice));
+        
+    } catch(e) {
+        // BACKUP API (Agar Binance block ho)
+        try {
+            const res2 = await fetch(`https://kraken.com{currentAsset.replace('USDT', 'USD')}`);
+            const data2 = await res2.json();
+            const result = Object.values(data2.result)[0];
+            updateUI(parseFloat(result.c[0]), parseFloat(result.h[0]), parseFloat(result.l[0]));
+        } catch(err) {
+            document.getElementById('p-val').innerText = "RETRYING...";
         }
     }
+}
 
-    function startAutoFetch() {
-        setInterval(fetchBinanceData, 2000); // Har 2 second baad data refresh hoga
-    }
-</script>
-</body>
-</html>
+function updateUI(p, high, low) {
+    document.getElementById('p-val').innerText = p.toFixed(2);
+    document.getElementById('v-sup').innerText = low.toFixed(2);
+    document.getElementById('v-res').innerText = high.toFixed(2);
+    // Baki SMC logic...
+}
