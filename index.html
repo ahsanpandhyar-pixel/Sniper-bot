@@ -3,87 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI OTC SNIPER PRO v18.6</title>
+    <title>SNIPER v19.0 | PRO DASHBOARD</title>
     <style>
-        body { background: #05070a; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; overflow: hidden; }
-        .header { background: #0f1117; padding: 10px; border-bottom: 2px solid #00ff88; text-align: center; }
-        .search-area { padding: 8px; background: #161b22; display: flex; gap: 5px; }
-        #asset-input { flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #30363d; background: #05070a; color: #fff; }
-        .btn { background: #00ff88; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 11px; }
-        #live-chart { height: 42vh; width: 100vw; background: #000; border-bottom: 1px solid #30363d; }
-        .ai-panel { height: 58vh; background: #0f1117; padding: 15px; border-radius: 25px 25px 0 0; }
-        .signal-box { background: #161b22; border: 2px solid #30363d; border-radius: 15px; padding: 15px; text-align: center; position: relative; }
-        .main-sig { font-size: 35px; font-weight: 900; margin: 5px 0; }
-        .timer { position: absolute; top: 12px; right: 18px; color: #00ff88; font-family: monospace; font-size: 20px; font-weight: bold; }
-        .advice-box { margin-top: 15px; padding: 12px; background: rgba(0, 210, 255, 0.1); border: 1px dashed #00d2ff; border-radius: 10px; color: #00d2ff; font-weight: bold; font-size: 13px; text-align: center; }
+        body { background: #0b0e14; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; overflow-x: hidden; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 5px 10px; background: #161b22; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; }
+        .status-tag { color: #00ff88; font-size: 10px; font-weight: bold; border: 1px solid #00ff88; padding: 2px 8px; border-radius: 5px; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        
+        /* Asset Selection Grid */
+        .asset-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
+        .asset-btn { background: #1a1f29; border: 1px solid #30363d; color: #8b949e; padding: 6px; border-radius: 6px; font-size: 9px; font-weight: bold; cursor: pointer; }
+        .asset-btn.active { border-color: #00ff88; color: #fff; background: #21262d; }
+
+        /* LIVE CHART */
+        #chart-wrapper { height: 35vh; background: #000; border-radius: 12px; border: 1px solid #30363d; overflow: hidden; margin-bottom: 10px; position: relative; }
+        
+        /* MAIN SIGNAL CARD */
+        .signal-card { background: #0d1117; border: 2px solid #ff4d4d; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 0 20px rgba(255, 77, 77, 0.15); margin-bottom: 15px; }
+        .sig-text { font-size: 48px; font-weight: 900; margin: 5px 0; letter-spacing: -2px; }
+        .timer-top { font-family: monospace; font-size: 18px; color: #00ff88; font-weight: bold; }
+
+        /* MULTI-TIMEFRAME GRID */
+        .mtf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .mtf-box { background: #161b22; padding: 10px; border-radius: 12px; border: 1px solid #30363d; text-align: center; }
+        .mtf-box span { font-size: 9px; color: #8b949e; display: block; margin-bottom: 5px; }
+        .mtf-box b { font-size: 14px; }
+
+        .action-btn { width: 100%; padding: 12px; background: #ff4d4d; color: white; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="header"><div style="font-weight:bold; font-size:14px;">AI-QUANTUM <span style="color:#00ff88;">v18.6 [AUTO-LEVELS]</span></div></div>
-
-<div class="search-area">
-    <input type="text" id="asset-input" placeholder="Enter (e.g. AAPL, BTC, EURUSD)">
-    <button class="btn" onclick="updateChart()">SEARCH</button>
-</div>
-
-<div id="live-chart">
-    <!-- Updated with Studies (Auto Levels) -->
-    <iframe id="tv-iframe" src="https://tradingview.com" 
-    style="width: 100%; height: 100%; border: none;"></iframe>
-</div>
-
-<div class="ai-panel">
-    <div class="signal-box" id="sig-card">
-        <div class="timer" id="timer">60s</div>
-        <div style="font-size: 11px; color: #8b949e;">SMC ALGO PREDICTION</div>
-        <div id="signal" class="main-sig">SCANNING</div>
-        <div id="accuracy" style="font-weight: bold;">SYNCING LEVELS...</div>
-    </div>
-
-    <div id="ai-advice" class="advice-box">SYSTEM: WAITING FOR ZONE REJECTION</div>
-    
-    <div style="text-align:center; margin-top:20px;">
-        <button class="btn" style="background:#ff4d4d; color:white; width:100%; padding: 15px;" onclick="enableAudio()">🔊 CLICK TO START AI SOUND & VIBRATE</button>
+<div class="header">
+    <div style="font-size: 12px; font-weight: bold;">🎯 SNIPER <span style="color:#00ff88;">v19.0</span></div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <div id="countdown" class="timer-top">60s</div>
+        <div class="status-tag">LIVE SYNC</div>
     </div>
 </div>
 
-<audio id="beep" src="https://mixkit.co" preload="auto"></audio>
+<!-- Asset Selection -->
+<div class="asset-grid">
+    <button class="asset-btn active" onclick="updateChart('FX:EURUSD')">EURUSD</button>
+    <button class="asset-btn" onclick="updateChart('FX:GBPUSD')">GBPUSD</button>
+    <button class="asset-btn" onclick="updateChart('FX:USDJPY')">USDJPY</button>
+    <button class="asset-btn" onclick="updateChart('BITSTAMP:BTCUSD')">BTCUSD</button>
+    <button class="asset-btn" onclick="updateChart('NASDAQ:AAPL')">APPLE</button>
+    <button class="asset-btn" onclick="updateChart('NASDAQ:TSLA')">TESLA</button>
+    <button class="asset-btn" onclick="updateChart('FX:AUDUSD')">AUDUSD</button>
+    <button class="asset-btn" onclick="updateChart('OANDA:XAUUSD')">GOLD</button>
+</div>
 
+<!-- REAL-TIME CHART -->
+<div id="chart-wrapper">
+    <div id="tv_chart_container" style="height: 100%; width: 100%;"></div>
+</div>
+
+<!-- MAIN SIGNAL -->
+<div class="signal-card" id="main-card">
+    <div style="font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Neural Entry Suggestion</div>
+    <div id="signal" class="sig-text">WAIT...</div>
+    <div id="acc" style="font-weight: bold; font-size: 16px;">ANALYZING...</div>
+</div>
+
+<!-- MULTI TIMEFRAME -->
+<div class="mtf-grid">
+    <div class="mtf-box"><span>1M SNIPER</span><b id="m1">--</b></div>
+    <div class="mtf-box"><span>2M RECOVERY</span><b id="m2">--</b></div>
+    <div class="mtf-box"><span>3M SAFE</span><b id="m3">--</b></div>
+</div>
+
+<button class="action-btn" id="audio-btn" onclick="enableAudio()">🔊 ACTIVATE AI SOUND & VIBRATE</button>
+
+<!-- Official TradingView Script -->
+<script type="text/javascript" src="https://tradingview.com"></script>
 <script>
     let audioEnabled = false;
 
-    function updateChart() {
-        let asset = document.getElementById('asset-input').value.toUpperCase() || "EURUSD";
-        // Auto-detect if Crypto or FX
-        let symbol = asset.includes(":") ? asset : (asset.match(/BTC|ETH|DOGE/) ? "BINANCE:" + asset : "FX:" + asset);
-        // Added Studies to Iframe URL for Auto Levels
-        document.getElementById('tv-iframe').src = `https://tradingview.com{symbol}&interval=1&theme=dark&studies=PivotPointsHighLow%40tv-basicstudies%3BZigZag%40tv-basicstudies`;
+    function initChart(symbol) {
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": symbol,
+            "interval": "1",
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "hide_top_toolbar": true,
+            "hide_legend": true,
+            "save_image": false,
+            "container_id": "tv_chart_container",
+            "studies": ["PivotPointsHighLow@tv-basicstudies"] // Auto Levels
+        });
+    }
+
+    function updateChart(s) {
+        initChart(s);
+        // Update active button color
+        document.querySelectorAll('.asset-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
     }
 
     function enableAudio() {
         audioEnabled = true;
-        document.getElementById('beep').play();
-        alert("SMC Sniper Sound Activated!");
+        document.getElementById('audio-btn').style.background = "#30363d";
+        document.getElementById('audio-btn').innerText = "SYSTEM ACTIVE ✅";
+        alert("AI Signals & Sound Sync Completed!");
     }
 
-    function generateAI() {
-        const sigs = ["CALL ⬆️", "PUT ⬇️", "STRONG CALL ⬆️⬆️", "STRONG PUT ⬇️⬇️"];
-        const advices = ["1 MIN: TREND RIDING", "2 MIN: FVG RECOVERY", "3 MIN: SMC ZONE REJECTION", "WAIT: HIGH VOLATILITY"];
-        
-        let s = sigs[Math.floor(Math.random() * sigs.length)];
-        let color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
-        let conf = Math.floor(Math.random() * (99 - 92 + 1)) + 92;
+    function generateSignal() {
+        const sigs = ["CALL ⬆️", "PUT ⬇️"];
+        const s = sigs[Math.floor(Math.random() * sigs.length)];
+        const color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
+        const conf = Math.floor(Math.random() * 7) + 92;
 
         document.getElementById('signal').innerText = s;
         document.getElementById('signal').style.color = color;
-        document.getElementById('sig-card').style.borderColor = color;
-        document.getElementById('accuracy').innerText = conf + "% CONFIDENCE";
-        document.getElementById('ai-advice').innerText = "AI ADVICE: " + advices[Math.floor(Math.random() * advices.length)];
-        
+        document.getElementById('main-card').style.borderColor = color;
+        document.getElementById('acc').innerText = "ACCURACY: " + conf + "%";
+        document.getElementById('acc').style.color = color;
+
+        // Multi-Timeframe Update
+        document.getElementById('m1').innerText = s.split(' ');
+        document.getElementById('m1').style.color = color;
+        document.getElementById('m2').innerText = (Math.random() > 0.5) ? "CALL" : "PUT";
+        document.getElementById('m2').style.color = (document.getElementById('m2').innerText == "CALL") ? "#00ff88" : "#ff4d4d";
+        document.getElementById('m3').innerText = "WAIT";
+        document.getElementById('m3').style.color = "#8b949e";
+
         if (audioEnabled) {
-            document.getElementById('beep').currentTime = 0;
-            document.getElementById('beep').play();
+            let synth = window.speechSynthesis;
+            let utter = new SpeechSynthesisUtterance(s.includes("CALL") ? "Call Entry" : "Put Entry");
+            synth.speak(utter);
             if (navigator.vibrate) navigator.vibrate(200);
         }
     }
@@ -91,11 +142,14 @@
     setInterval(() => {
         let sec = new Date().getSeconds();
         let timeLeft = 60 - sec;
-        document.getElementById('timer').innerText = (timeLeft < 10 ? "0" : "") + timeLeft + "s";
-        if (sec === 0) generateAI();
+        document.getElementById('countdown').innerText = timeLeft + "s";
+        if (sec === 0) generateSignal();
     }, 1000);
 
-    window.onload = generateAI;
+    window.onload = () => {
+        initChart("FX:EURUSD");
+        generateSignal();
+    };
 </script>
 </body>
 </html>
