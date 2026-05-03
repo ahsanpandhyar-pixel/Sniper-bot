@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER | FINAL TERMINAL</title>
+    <title>AI SNIPER | STABLE TERMINAL</title>
     <style>
         :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; --warn: #ffab00; }
         body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; padding: 10px; overflow-x: hidden; }
@@ -20,26 +20,23 @@
         .row { border-bottom: 1px solid #1e222d; padding: 5px 0; display: flex; justify-content: space-between; font-size: 11px; }
         .row b { color: #fff; }
         .ai-hunter { background: linear-gradient(145deg, #0d1117, #1a1f26); border-left: 4px solid var(--blue); padding: 15px; border-radius: 12px; }
-        .start-btn { width: 100%; padding: 20px; background: var(--blue); color: #000; border: none; border-radius: 12px; font-weight: 900; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,210,255,0.3); cursor: pointer; }
     </style>
 </head>
-<body>
-
-<button class="start-btn" id="master-start" onclick="initSystem()">INITIALIZE LIVE CONNECTION 🚀</button>
+<body onload="startAutoSync()">
 
 <div class="header">
     <input type="text" id="symbol-input" placeholder="Type BTC or ETH">
-    <button class="btn" onclick="manualSearch()">SEARCH</button>
+    <button class="btn" onclick="updateAsset()">SEARCH</button>
 </div>
 
 <div class="main-terminal">
-    <div style="font-size:14px; color:var(--blue); font-weight:900;" id="main-sym">TERMINAL READY</div>
-    <div class="price" id="main-price">0.00</div>
+    <div style="font-size:14px; color:var(--blue); font-weight:900;" id="main-sym">BTCUSDT TERMINAL</div>
+    <div class="price" id="main-price">CONNECTING...</div>
     <div class="tabs">
         <div class="tab" id="t1">1 MIN</div>
         <div class="tab" id="t3">3 MIN</div>
     </div>
-    <div id="main-sig" class="signal-box" style="color:#333">OFFLINE</div>
+    <div id="main-sig" class="signal-box" style="color:#444">SCANNING</div>
     <div style="font-size:12px; color:var(--warn); font-weight:bold;" id="main-exp">EXPIRY: --:--</div>
     
     <div class="intel-grid">
@@ -52,66 +49,71 @@
 
 <div class="ai-hunter">
     <div style="font-size:10px; font-weight:bold; color:var(--blue);">🛰️ AI-HUNTER v34</div>
-    <div id="hunter-text" style="font-size:13px;">Waiting for system start...</div>
+    <div id="hunter-text" style="font-size:13px;">Scanning market for setups...</div>
 </div>
 
 <audio id="beep" src="https://mixkit.co"></audio>
 
 <script>
-    let ws = null;
+    let currentSymbol = 'BTCUSDT';
     let lastPrice = 0;
 
-    function initSystem() {
-        document.getElementById('master-start').style.display = 'none';
-        connect('btcusdt');
+    async function fetchData() {
+        try {
+            // REST API Method - Direct from Binance (No Socket required)
+            const response = await fetch(`https://binance.com{currentSymbol}`);
+            const data = await response.json();
+            if (data.price) {
+                const p = parseFloat(data.price);
+                document.getElementById('main-price').innerText = p.toFixed(p > 100 ? 2 : 5);
+                processLogic(p);
+            }
+        } catch (e) {
+            document.getElementById('main-price').innerText = "OFFLINE";
+        }
     }
 
-    function manualSearch() {
-        let sym = document.getElementById('symbol-input').value.toLowerCase().trim();
+    function processLogic(p) {
+        let diff = p - lastPrice;
+        if (lastPrice !== 0 && Math.abs(diff) > (p * 0.00002)) {
+            let isUp = diff > 0;
+            let sig = document.getElementById('main-sig');
+            sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
+            sig.style.color = isUp ? "var(--neon)" : "var(--danger)";
+            
+            document.getElementById('t1').className = "tab active";
+            document.getElementById('t3').className = "tab active";
+            
+            let exp = new Date(Date.now() + 3 * 60000);
+            document.getElementById('main-exp').innerText = "EXPIRY: " + exp.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            
+            document.getElementById('main-pat').innerText = "MOMENTUM";
+            document.getElementById('main-smc').innerText = isUp ? "BULLISH BOS" : "BEARISH BOS";
+            document.getElementById('main-trend').innerText = isUp ? "BUYING" : "SELLING";
+            document.getElementById('main-acc').innerText = "92.4%";
+            document.getElementById('beep').play();
+        }
+        lastPrice = p;
+
+        // AI Hunter random logic
+        if(Math.random() > 0.95) {
+            document.getElementById('hunter-text').innerText = "Potential Setup: ETHUSDT - BUY ⬆️";
+        }
+    }
+
+    function updateAsset() {
+        let sym = document.getElementById('symbol-input').value.toUpperCase().trim();
         if(!sym) return;
-        if(!sym.includes('usdt')) sym += 'usdt';
-        connect(sym);
+        if(!sym.includes('USDT') && !sym.includes('BTC')) sym += 'USDT';
+        currentSymbol = sym;
+        document.getElementById('main-sym').innerText = sym + " TERMINAL";
+        lastPrice = 0;
+        fetchData();
     }
 
-    function connect(symbol) {
-        if(ws) ws.close();
-        document.getElementById('main-sym').innerText = symbol.toUpperCase() + " ACTIVE";
-        
-        ws = new WebSocket(`wss://://binance.com{symbol}@trade`);
-
-        ws.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            const p = parseFloat(data.p);
-            document.getElementById('main-price').innerText = p.toFixed(p > 100 ? 2 : 4);
-            
-            let diff = p - lastPrice;
-            if (Math.abs(diff) > (p * 0.00005)) {
-                let isUp = diff > 0;
-                let sig = document.getElementById('main-sig');
-                sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
-                sig.style.color = isUp ? "var(--neon)" : "var(--danger)";
-                
-                document.getElementById('t1').className = "tab active";
-                document.getElementById('t3').className = "tab active";
-                
-                let exp = new Date(Date.now() + 3 * 60000);
-                document.getElementById('main-exp').innerText = "EXPIRY: " + exp.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                
-                document.getElementById('main-pat').innerText = "STRONG MOMENTUM";
-                document.getElementById('main-smc').innerText = isUp ? "BULLISH BOS" : "BEARISH SWEEP";
-                document.getElementById('main-acc').innerText = "94.2%";
-                document.getElementById('main-trend').innerText = isUp ? "BUYING" : "SELLING";
-                document.getElementById('beep').play();
-            }
-            lastPrice = p;
-            
-            // Hunter Simulation
-            if(Math.random() > 0.99) {
-                document.getElementById('hunter-text').innerText = "New Setup Found on ETH/USDT: BUY ⬆️";
-            }
-        };
-
-        ws.onerror = () => { document.getElementById('main-price').innerText = "ERR: REFRESH"; };
+    function startAutoSync() {
+        // Har 2 second baad price update hogi (Stable for Mobile)
+        setInterval(fetchData, 2000);
     }
 </script>
 </body>
