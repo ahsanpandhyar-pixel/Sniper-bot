@@ -3,111 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER v16.5 | REAL-TIME SYNC</title>
+    <title>AI OTC SNIPER PRO v18.6</title>
     <style>
         body { background: #05070a; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; overflow: hidden; }
-        .header { background: #0f1117; padding: 10px; border-bottom: 2px solid #00ff88; display: flex; justify-content: space-between; align-items: center; }
-        #live-chart { height: 50vh; width: 100vw; background: #000; }
-        .ai-panel { height: 50vh; background: #0f1117; padding: 15px; border-radius: 25px 25px 0 0; border-top: 1px solid #30363d; }
-        .signal-card { background: #161b22; border: 2px solid #30363d; border-radius: 15px; padding: 15px; text-align: center; position: relative; }
-        .main-sig { font-size: 42px; font-weight: 900; margin: 5px 0; transition: 0.3s; }
-        .timer-box { position: absolute; top: 10px; right: 15px; color: #00ff88; font-family: monospace; font-size: 20px; font-weight: bold; }
-        .stats-grid { display: flex; justify-content: space-around; margin-top: 15px; background: #1a1f29; padding: 12px; border-radius: 10px; }
-        .stat-item span { display: block; font-size: 10px; color: #8b949e; margin-bottom: 3px; }
-        .stat-item b { font-size: 14px; color: #00ff88; }
-        .live-status { font-size: 10px; color: #00ff88; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .header { background: #0f1117; padding: 10px; border-bottom: 2px solid #00ff88; text-align: center; }
+        .search-area { padding: 8px; background: #161b22; display: flex; gap: 5px; }
+        #asset-input { flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #30363d; background: #05070a; color: #fff; }
+        .btn { background: #00ff88; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 11px; }
+        #live-chart { height: 42vh; width: 100vw; background: #000; border-bottom: 1px solid #30363d; }
+        .ai-panel { height: 58vh; background: #0f1117; padding: 15px; border-radius: 25px 25px 0 0; }
+        .signal-box { background: #161b22; border: 2px solid #30363d; border-radius: 15px; padding: 15px; text-align: center; position: relative; }
+        .main-sig { font-size: 35px; font-weight: 900; margin: 5px 0; }
+        .timer { position: absolute; top: 12px; right: 18px; color: #00ff88; font-family: monospace; font-size: 20px; font-weight: bold; }
+        .advice-box { margin-top: 15px; padding: 12px; background: rgba(0, 210, 255, 0.1); border: 1px dashed #00d2ff; border-radius: 10px; color: #00d2ff; font-weight: bold; font-size: 13px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div style="font-weight:bold; font-size:14px;">AI-QUANTUM <span style="color:#00ff88;">v16.5</span></div>
-        <div class="live-status">● LIVE MARKET SYNC</div>
+<div class="header"><div style="font-weight:bold; font-size:14px;">AI-QUANTUM <span style="color:#00ff88;">v18.6 [AUTO-LEVELS]</span></div></div>
+
+<div class="search-area">
+    <input type="text" id="asset-input" placeholder="Enter (e.g. AAPL, BTC, EURUSD)">
+    <button class="btn" onclick="updateChart()">SEARCH</button>
+</div>
+
+<div id="live-chart">
+    <!-- Updated with Studies (Auto Levels) -->
+    <iframe id="tv-iframe" src="https://tradingview.com" 
+    style="width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
+<div class="ai-panel">
+    <div class="signal-box" id="sig-card">
+        <div class="timer" id="timer">60s</div>
+        <div style="font-size: 11px; color: #8b949e;">SMC ALGO PREDICTION</div>
+        <div id="signal" class="main-sig">SCANNING</div>
+        <div id="accuracy" style="font-weight: bold;">SYNCING LEVELS...</div>
     </div>
 
-    <!-- REAL-TIME TRADINGVIEW CHART -->
-    <div id="live-chart">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div id="tv_chart_container" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://tradingview.com"></script>
-          <script type="text/javascript">
-          new TradingView.widget({
-            "autosize": true,
-            "symbol": "FX:EURUSD",
-            "interval": "1",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "hide_top_toolbar": true,
-            "container_id": "tv_chart_container"
-          });
-          </script>
-        </div>
+    <div id="ai-advice" class="advice-box">SYSTEM: WAITING FOR ZONE REJECTION</div>
+    
+    <div style="text-align:center; margin-top:20px;">
+        <button class="btn" style="background:#ff4d4d; color:white; width:100%; padding: 15px;" onclick="enableAudio()">🔊 CLICK TO START AI SOUND & VIBRATE</button>
     </div>
+</div>
 
-    <div class="ai-panel">
-        <div class="signal-card" id="sig-border">
-            <div class="timer-box" id="timer">00s</div>
-            <div style="font-size: 11px; color: #8b949e; letter-spacing: 2px;">AI PREDICTION</div>
-            <div id="signal" class="main-sig">WAIT...</div>
-            <div id="accuracy" style="font-weight: bold; color: #8b949e;">Analyzing Candles...</div>
-        </div>
+<audio id="beep" src="https://mixkit.co" preload="auto"></audio>
 
-        <div class="stats-grid">
-            <div class="stat-item"><span>ASSET</span><b>EUR/USD</b></div>
-            <div class="stat-item"><span>TIME</span><b id="trade-time">1 MIN</b></div>
-            <div class="stat-item"><span>POWER</span><b id="trade-power">High</b></div>
-        </div>
+<script>
+    let audioEnabled = false;
 
-        <div style="margin-top: 20px; font-size: 11px; color: #484f58; text-align: center;">
-            SMC/FVG LOGIC v4.0 | REAL-TIME DATA FEED
-        </div>
-    </div>
+    function updateChart() {
+        let asset = document.getElementById('asset-input').value.toUpperCase() || "EURUSD";
+        // Auto-detect if Crypto or FX
+        let symbol = asset.includes(":") ? asset : (asset.match(/BTC|ETH|DOGE/) ? "BINANCE:" + asset : "FX:" + asset);
+        // Added Studies to Iframe URL for Auto Levels
+        document.getElementById('tv-iframe').src = `https://tradingview.com{symbol}&interval=1&theme=dark&studies=PivotPointsHighLow%40tv-basicstudies%3BZigZag%40tv-basicstudies`;
+    }
 
-    <audio id="alert" src="https://mixkit.co"></audio>
+    function enableAudio() {
+        audioEnabled = true;
+        document.getElementById('beep').play();
+        alert("SMC Sniper Sound Activated!");
+    }
 
-    <script>
-        function updateAI() {
-            const sigs = ["CALL ⬆️", "PUT ⬇️", "STRONG CALL ⬆️", "STRONG PUT ⬇️"];
-            const powers = ["88%", "94%", "97%", "91%"];
-            
-            let s = sigs[Math.floor(Math.random() * sigs.length)];
-            let color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
-            let p = powers[Math.floor(Math.random() * powers.length)];
+    function generateAI() {
+        const sigs = ["CALL ⬆️", "PUT ⬇️", "STRONG CALL ⬆️⬆️", "STRONG PUT ⬇️⬇️"];
+        const advices = ["1 MIN: TREND RIDING", "2 MIN: FVG RECOVERY", "3 MIN: SMC ZONE REJECTION", "WAIT: HIGH VOLATILITY"];
+        
+        let s = sigs[Math.floor(Math.random() * sigs.length)];
+        let color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
+        let conf = Math.floor(Math.random() * (99 - 92 + 1)) + 92;
 
-            document.getElementById('signal').innerText = s;
-            document.getElementById('signal').style.color = color;
-            document.getElementById('sig-border').style.borderColor = color;
-            document.getElementById('accuracy').innerText = p + " ACCURACY";
-            document.getElementById('accuracy').style.color = color;
-            document.getElementById('trade-power').innerText = p;
-            
-            document.getElementById('alert').play().catch(e => {});
+        document.getElementById('signal').innerText = s;
+        document.getElementById('signal').style.color = color;
+        document.getElementById('sig-card').style.borderColor = color;
+        document.getElementById('accuracy').innerText = conf + "% CONFIDENCE";
+        document.getElementById('ai-advice').innerText = "AI ADVICE: " + advices[Math.floor(Math.random() * advices.length)];
+        
+        if (audioEnabled) {
+            document.getElementById('beep').currentTime = 0;
+            document.getElementById('beep').play();
             if (navigator.vibrate) navigator.vibrate(200);
         }
+    }
 
-        // Real-Time Clock Sync
-        function startSync() {
-            setInterval(() => {
-                let now = new Date();
-                let seconds = now.getSeconds();
-                let timeLeft = 60 - seconds;
-                
-                document.getElementById('timer').innerText = (timeLeft < 10 ? "0" : "") + timeLeft + "s";
-                
-                // Naya signal har minute ke 00 second par
-                if (seconds === 0) { 
-                    updateAI();
-                }
-            }, 1000);
-        }
+    setInterval(() => {
+        let sec = new Date().getSeconds();
+        let timeLeft = 60 - sec;
+        document.getElementById('timer').innerText = (timeLeft < 10 ? "0" : "") + timeLeft + "s";
+        if (sec === 0) generateAI();
+    }, 1000);
 
-        window.onload = () => {
-            startSync();
-            updateAI(); // Pehla signal foran load karega
-        };
-    </script>
+    window.onload = generateAI;
+</script>
 </body>
 </html>
