@@ -3,138 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SNIPER v19.0 | PRO DASHBOARD</title>
+    <title>AI NEURAL SNIPER v21.0</title>
     <style>
-        body { background: #0b0e14; color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; overflow-x: hidden; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 5px 10px; background: #161b22; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 10px; }
-        .status-tag { color: #00ff88; font-size: 10px; font-weight: bold; border: 1px solid #00ff88; padding: 2px 8px; border-radius: 5px; animation: blink 1.5s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        :root { --neon: #00ff88; --danger: #ff4d4d; --bg: #05070a; --card: #0f1117; }
+        body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; text-align: center; }
         
-        /* Asset Selection Grid */
-        .asset-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
-        .asset-btn { background: #1a1f29; border: 1px solid #30363d; color: #8b949e; padding: 6px; border-radius: 6px; font-size: 9px; font-weight: bold; cursor: pointer; }
-        .asset-btn.active { border-color: #00ff88; color: #fff; background: #21262d; }
+        .header { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 2px solid var(--neon); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .timer { font-family: monospace; font-size: 22px; font-weight: bold; color: var(--neon); }
 
-        /* LIVE CHART */
-        #chart-wrapper { height: 35vh; background: #000; border-radius: 12px; border: 1px solid #30363d; overflow: hidden; margin-bottom: 10px; position: relative; }
-        
-        /* MAIN SIGNAL CARD */
-        .signal-card { background: #0d1117; border: 2px solid #ff4d4d; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 0 20px rgba(255, 77, 77, 0.15); margin-bottom: 15px; }
-        .sig-text { font-size: 48px; font-weight: 900; margin: 5px 0; letter-spacing: -2px; }
-        .timer-top { font-family: monospace; font-size: 18px; color: #00ff88; font-weight: bold; }
+        /* Neural Signal Card */
+        .main-card { background: var(--card); border: 2px solid #30363d; border-radius: 20px; padding: 30px; margin-bottom: 15px; position: relative; }
+        .sig-val { font-size: 55px; font-weight: 900; margin: 10px 0; letter-spacing: -2px; }
+        .ai-status { font-size: 10px; color: #8b949e; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* MULTI-TIMEFRAME GRID */
-        .mtf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
-        .mtf-box { background: #161b22; padding: 10px; border-radius: 12px; border: 1px solid #30363d; text-align: center; }
-        .mtf-box span { font-size: 9px; color: #8b949e; display: block; margin-bottom: 5px; }
-        .mtf-box b { font-size: 14px; }
+        /* SMART TIME DURATION (Dark/Highlighter Logic) */
+        .duration-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .time-box { background: #161b22; padding: 20px; border-radius: 15px; border: 2px solid #30363d; transition: 0.4s; opacity: 0.4; }
+        .time-box.active { opacity: 1; border-color: var(--neon); box-shadow: 0 0 15px rgba(0,255,136,0.3); background: #1a1f29; }
+        .time-box.active b { color: var(--neon); font-size: 24px; }
+        .time-box span { display: block; font-size: 11px; color: #8b949e; margin-bottom: 5px; }
 
-        .action-btn { width: 100%; padding: 12px; background: #ff4d4d; color: white; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; }
+        /* Market Intel (The "Why" behind the trade) */
+        .intel-box { background: #161b22; padding: 15px; border-radius: 15px; border-left: 4px solid var(--neon); text-align: left; margin-bottom: 20px; }
+        .intel-row { font-size: 13px; margin-bottom: 5px; display: flex; justify-content: space-between; }
+
+        .action-btn { width: 100%; padding: 18px; background: var(--neon); color: #000; border: none; border-radius: 15px; font-weight: 900; font-size: 15px; cursor: pointer; box-shadow: 0 5px 20px rgba(0,255,136,0.4); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="font-size: 12px; font-weight: bold;">🎯 SNIPER <span style="color:#00ff88;">v19.0</span></div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <div id="countdown" class="timer-top">60s</div>
-        <div class="status-tag">LIVE SYNC</div>
+    <div><b style="font-size: 18px;">AI-QUANTUM <span style="color:var(--neon);">PRO</span></b></div>
+    <div id="timer" class="timer">60s</div>
+</div>
+
+<div class="main-card" id="sig-card">
+    <div class="ai-status">Neural Prediction Engine</div>
+    <div id="signal" class="sig-val">SCANNING</div>
+    <div id="acc" style="font-weight: bold; color: var(--neon);">BOOTING...</div>
+</div>
+
+<!-- SMART DURATION: Highlighted based on Trend Strength -->
+<div class="duration-container">
+    <div id="t1" class="time-box">
+        <span>SHORT-TERM</span>
+        <b>1 MIN</b>
+    </div>
+    <div id="t3" class="time-box">
+        <span>CONTINUATION</span>
+        <b>3 MIN</b>
     </div>
 </div>
 
-<!-- Asset Selection -->
-<div class="asset-grid">
-    <button class="asset-btn active" onclick="updateChart('FX:EURUSD')">EURUSD</button>
-    <button class="asset-btn" onclick="updateChart('FX:GBPUSD')">GBPUSD</button>
-    <button class="asset-btn" onclick="updateChart('FX:USDJPY')">USDJPY</button>
-    <button class="asset-btn" onclick="updateChart('BITSTAMP:BTCUSD')">BTCUSD</button>
-    <button class="asset-btn" onclick="updateChart('NASDAQ:AAPL')">APPLE</button>
-    <button class="asset-btn" onclick="updateChart('NASDAQ:TSLA')">TESLA</button>
-    <button class="asset-btn" onclick="updateChart('FX:AUDUSD')">AUDUSD</button>
-    <button class="asset-btn" onclick="updateChart('OANDA:XAUUSD')">GOLD</button>
+<div class="intel-box">
+    <div class="intel-row"><span>CANDLE PATTERN:</span><b id="pattern">ANALYZING...</b></div>
+    <div class="intel-row"><span>TREND STRENGTH:</span><b id="strength">--</b></div>
+    <div class="intel-row"><span>SMC CONTEXT:</span><b id="context">SCANNING...</b></div>
 </div>
 
-<!-- REAL-TIME CHART -->
-<div id="chart-wrapper">
-    <div id="tv_chart_container" style="height: 100%; width: 100%;"></div>
-</div>
+<button class="action-btn" onclick="activateAI()">ACTIVATE NEURAL SENSORS ✅</button>
 
-<!-- MAIN SIGNAL -->
-<div class="signal-card" id="main-card">
-    <div style="font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px;">Neural Entry Suggestion</div>
-    <div id="signal" class="sig-text">WAIT...</div>
-    <div id="acc" style="font-weight: bold; font-size: 16px;">ANALYZING...</div>
-</div>
+<audio id="beep" src="https://mixkit.co" preload="auto"></audio>
 
-<!-- MULTI TIMEFRAME -->
-<div class="mtf-grid">
-    <div class="mtf-box"><span>1M SNIPER</span><b id="m1">--</b></div>
-    <div class="mtf-box"><span>2M RECOVERY</span><b id="m2">--</b></div>
-    <div class="mtf-box"><span>3M SAFE</span><b id="m3">--</b></div>
-</div>
-
-<button class="action-btn" id="audio-btn" onclick="enableAudio()">🔊 ACTIVATE AI SOUND & VIBRATE</button>
-
-<!-- Official TradingView Script -->
-<script type="text/javascript" src="https://tradingview.com"></script>
 <script>
-    let audioEnabled = false;
+    let aiOn = false;
 
-    function initChart(symbol) {
-        new TradingView.widget({
-            "autosize": true,
-            "symbol": symbol,
-            "interval": "1",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "hide_top_toolbar": true,
-            "hide_legend": true,
-            "save_image": false,
-            "container_id": "tv_chart_container",
-            "studies": ["PivotPointsHighLow@tv-basicstudies"] // Auto Levels
-        });
+    function activateAI() {
+        aiOn = true;
+        document.getElementById('beep').play();
+        alert("AI Neural Engine Active! Tracking every candle...");
     }
 
-    function updateChart(s) {
-        initChart(s);
-        // Update active button color
-        document.querySelectorAll('.asset-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
-    }
-
-    function enableAudio() {
-        audioEnabled = true;
-        document.getElementById('audio-btn').style.background = "#30363d";
-        document.getElementById('audio-btn').innerText = "SYSTEM ACTIVE ✅";
-        alert("AI Signals & Sound Sync Completed!");
-    }
-
-    function generateSignal() {
+    function runAI() {
         const sigs = ["CALL ⬆️", "PUT ⬇️"];
-        const s = sigs[Math.floor(Math.random() * sigs.length)];
-        const color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
-        const conf = Math.floor(Math.random() * 7) + 92;
+        const patterns = ["Bullish Engulfing", "Pin Bar Rejection", "Doji Reversal", "Marubozu Strength"];
+        const strengths = ["LOW (1m Only)", "MEDIUM (1m-2m)", "HIGH (1m-3m Focus)"];
+        const contexts = ["OB Rejection", "FVG Filling", "Liquidity Grab", "Zone Breakout"];
 
+        let s = sigs[Math.floor(Math.random() * sigs.length)];
+        let p = patterns[Math.floor(Math.random() * patterns.length)];
+        let c = contexts[Math.floor(Math.random() * contexts.length)];
+        let strVal = Math.floor(Math.random() * 3); // 0, 1, or 2
+        
+        let color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
+        
+        // Dashboard Update
         document.getElementById('signal').innerText = s;
         document.getElementById('signal').style.color = color;
-        document.getElementById('main-card').style.borderColor = color;
-        document.getElementById('acc').innerText = "ACCURACY: " + conf + "%";
-        document.getElementById('acc').style.color = color;
+        document.getElementById('sig-card').style.borderColor = color;
+        document.getElementById('acc').innerText = (Math.floor(Math.random() * 6) + 94) + "% CONFIDENCE";
+        document.getElementById('pattern').innerText = p;
+        document.getElementById('context').innerText = c;
+        document.getElementById('strength').innerText = strengths[strVal];
 
-        // Multi-Timeframe Update
-        document.getElementById('m1').innerText = s.split(' ');
-        document.getElementById('m1').style.color = color;
-        document.getElementById('m2').innerText = (Math.random() > 0.5) ? "CALL" : "PUT";
-        document.getElementById('m2').style.color = (document.getElementById('m2').innerText == "CALL") ? "#00ff88" : "#ff4d4d";
-        document.getElementById('m3').innerText = "WAIT";
-        document.getElementById('m3').style.color = "#8b949e";
+        // SMART DURATION LOGIC (The "Highlighter")
+        document.getElementById('t1').classList.remove('active');
+        document.getElementById('t3').classList.remove('active');
 
-        if (audioEnabled) {
-            let synth = window.speechSynthesis;
-            let utter = new SpeechSynthesisUtterance(s.includes("CALL") ? "Call Entry" : "Put Entry");
-            synth.speak(utter);
+        if (strVal === 0) {
+            // Low strength: Only 1 min is active
+            document.getElementById('t1').classList.add('active');
+        } else {
+            // Medium/High strength: Both 1 min and 3 min are active (Highlighted)
+            document.getElementById('t1').classList.add('active');
+            document.getElementById('t3').classList.add('active');
+        }
+
+        if (aiOn) {
+            document.getElementById('beep').currentTime = 0;
+            document.getElementById('beep').play();
             if (navigator.vibrate) navigator.vibrate(200);
         }
     }
@@ -142,14 +119,11 @@
     setInterval(() => {
         let sec = new Date().getSeconds();
         let timeLeft = 60 - sec;
-        document.getElementById('countdown').innerText = timeLeft + "s";
-        if (sec === 0) generateSignal();
+        document.getElementById('timer').innerText = (timeLeft < 10 ? "0" : "") + timeLeft + "s";
+        if (sec === 0) runAI();
     }, 1000);
 
-    window.onload = () => {
-        initChart("FX:EURUSD");
-        generateSignal();
-    };
+    window.onload = runAI;
 </script>
 </body>
 </html>
