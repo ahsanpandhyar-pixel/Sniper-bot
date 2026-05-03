@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER v34.0 | FIXED</title>
+    <title>AI SNIPER | NO-FAIL VERSION</title>
     <style>
-        :root { --neon: #00ff88; --bg: #000; --card: #0d1117; --danger: #ff4d4d; }
+        :root { --neon: #00ff88; --bg: #000; --card: #0d1117; }
         body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; overflow: hidden; }
-        .nav { background: var(--card); padding: 8px; display: flex; gap: 5px; border-bottom: 2px solid var(--neon); align-items: center; }
+        .nav { background: var(--card); padding: 8px; display: flex; gap: 5px; border-bottom: 2px solid var(--neon); height: 50px; align-items: center; box-sizing: border-box; }
         input { background: #111; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; flex-grow: 1; outline: none; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; height: calc(100vh - 60px); }
-        .block { background: var(--card); border-radius: 8px; position: relative; border: 1px solid #1a1f26; overflow: hidden; display: flex; flex-direction: column; }
-        iframe { flex-grow: 1; border: none; width: 100%; }
-        .overlay { position: absolute; top: 5px; left: 5px; z-index: 10; background: rgba(0,0,0,0.8); padding: 4px; border-radius: 3px; border: 1px solid #333; pointer-events: none; }
-        .price { font-size: 12px; font-weight: bold; color: var(--neon); font-family: monospace; }
-        .sig-banner { background: #0d1117; text-align: center; padding: 5px; font-weight: 900; font-size: 12px; border-top: 1px solid #222; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; height: calc(100vh - 50px); box-sizing: border-box; }
+        .block { background: var(--card); border-radius: 8px; border: 1px solid #1a1f26; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .sig { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.8); text-align: center; padding: 5px; font-weight: 900; font-size: 12px; color: var(--neon); z-index: 10; border-top: 1px solid #222; }
     </style>
 </head>
-<body onload="initCharts()">
+<body>
 
 <div class="nav">
     <input type="number" id="b-id" value="1" style="max-width:35px">
@@ -26,7 +24,6 @@
 </div>
 
 <div class="grid" id="main-grid">
-    <!-- 4 Blocks -->
     <div class="block" id="box-1"></div>
     <div class="block" id="box-2"></div>
     <div class="block" id="box-3"></div>
@@ -34,52 +31,30 @@
 </div>
 
 <script>
-    const KEY = 'd7rir1pr01qgahvdpft0d7rir1pr01qgahvdpftg';
     const pairs = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
 
-    function initCharts() {
-        pairs.forEach((sym, i) => renderBlock(i + 1, sym));
+    function init() {
+        pairs.forEach((sym, i) => render(i + 1, sym));
     }
 
-    function renderBlock(id, sym) {
-        const container = document.getElementById(`box-${id}`);
-        // TradingView IFrame - Sab se stable tareeqa
-        const chartUrl = `https://tradingview.com{sym}&interval=1&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FKarachi`;
+    function render(id, sym) {
+        const box = document.getElementById(`box-${id}`);
+        // Simple Iframe - No External Scripts needed
+        const url = `https://tradingview.com{sym}&interval=1&theme=dark&style=1&timezone=Asia/Karachi`;
         
-        container.innerHTML = `
-            <div class="overlay">
-                <div style="font-size:8px; color:#00d2ff; font-weight:bold;">${sym}</div>
-                <div class="price" id="p-${id}">LOADING...</div>
-            </div>
-            <iframe src="${chartUrl}"></iframe>
-            <div class="sig-banner" id="sig-${id}">SCANNING MARKET...</div>
+        box.innerHTML = `
+            <iframe src="${url}"></iframe>
+            <div class="sig" id="sig-${id}">SCANNING ${sym}...</div>
         `;
-        startPriceSync(id, sym);
-    }
-
-    async function startPriceSync(id, sym) {
-        setInterval(async () => {
-            try {
-                const res = await fetch(`https://finnhub.io{sym}&token=${KEY}`);
-                const data = await res.json();
-                if (data.c) {
-                    document.getElementById(`p-${id}`).innerText = data.c.toFixed(2);
-                    let sig = document.getElementById(`sig-${id}`);
-                    if (data.c > data.pc) {
-                        sig.innerText = "CALL ⬆️"; sig.style.color = "#00ff88";
-                    } else {
-                        sig.innerText = "PUT ⬇️"; sig.style.color = "#ff4d4d";
-                    }
-                }
-            } catch (e) {}
-        }, 3000);
     }
 
     function updateAsset() {
         let id = document.getElementById('b-id').value;
-        let sym = document.getElementById('b-sym').value.toUpperCase();
-        if(sym && id <= 4) renderBlock(id, sym);
+        let sym = document.getElementById('b-sym').value.toUpperCase().trim();
+        if(sym && id <= 4) render(id, sym);
     }
+
+    window.onload = init;
 </script>
 </body>
 </html>
