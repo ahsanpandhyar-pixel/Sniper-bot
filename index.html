@@ -3,116 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER v34.0 | TERMINAL</title>
-    <!-- Stable Library Load -->
-    <script src="https://jsdelivr.net"></script>
+    <title>AI SNIPER v34.0 | FIX</title>
+    <script type="text/javascript" src="https://tradingview.com"></script>
     <style>
         :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; }
-        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; overflow: hidden; touch-action: manipulation; }
-        .nav { background: var(--card); padding: 10px; display: flex; gap: 8px; border-bottom: 2px solid var(--neon); height: 50px; align-items: center; box-sizing: border-box; }
-        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; font-size: 12px; outline: none; flex-grow: 1; }
-        .set-btn { background: var(--neon); border: none; font-weight: 900; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 11px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: calc(100vh - 50px); padding: 5px; box-sizing: border-box; }
-        .block { background: var(--card); border-radius: 12px; display: flex; flex-direction: column; position: relative; border: 1px solid #1a1f26; overflow: hidden; }
-        .chart-container { flex-grow: 1; position: relative; width: 100%; background: #0d1117; }
-        .overlay { position: absolute; top: 8px; left: 8px; z-index: 10; pointer-events: none; background: rgba(0,0,0,0.7); padding: 5px; border-radius: 4px; border: 1px solid #222; }
-        .price { font-size: 14px; font-weight: 900; color: var(--neon); font-family: monospace; }
-        .signal { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 85%; text-align: center; padding: 8px; border-radius: 6px; font-weight: 900; font-size: 14px; background: rgba(0,0,0,0.9); z-index: 20; border: 1px solid #333; }
-        .smc-info { position: absolute; top: 45px; left: 8px; font-size: 8px; color: #888; z-index: 10; }
+        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; overflow-x: hidden; }
+        .nav { background: var(--card); padding: 8px; display: flex; gap: 5px; border-bottom: 2px solid var(--neon); align-items: center; }
+        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; flex-grow: 1; outline: none; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; height: calc(100vh - 60px); }
+        .block { background: var(--card); border-radius: 8px; position: relative; border: 1px solid #1a1f26; display: flex; flex-direction: column; overflow: hidden; }
+        .chart-box { flex-grow: 1; width: 100%; min-height: 250px; background: #000; }
+        .overlay { position: absolute; top: 5px; left: 5px; z-index: 10; background: rgba(0,0,0,0.7); padding: 4px; border-radius: 3px; pointer-events: none; }
+        .price { font-size: 14px; font-weight: bold; color: var(--neon); }
+        .sig-banner { background: rgba(0,0,0,0.8); text-align: center; padding: 8px; font-weight: 900; font-size: 14px; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
 
 <div class="nav">
-    <input type="number" id="block-id" value="1" style="max-width:40px">
-    <input type="text" id="asset-sym" placeholder="BTCUSDT">
-    <button class="set-btn" onclick="changeAsset()">SET ASSET</button>
+    <input type="number" id="b-id" value="1" style="max-width:35px">
+    <input type="text" id="b-sym" placeholder="e.g. BTCUSDT">
+    <button onclick="updateAsset()" style="background:var(--neon); border:none; padding:8px 12px; border-radius:5px; font-weight:bold;">SET</button>
 </div>
 
-<div class="grid" id="ui-grid"></div>
+<div class="grid" id="main-grid"></div>
 
 <script>
     const KEY = 'd7rir1pr01qgahvdpft0d7rir1pr01qgahvdpftg';
-    let charts = {}, series = {}, sockets = {}, lastP = {};
     const pairs = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
 
-    function initSystem() {
-        const grid = document.getElementById('ui-grid');
-        grid.innerHTML = '';
+    function init() {
+        const container = document.getElementById('main-grid');
         pairs.forEach((sym, i) => {
             let id = i + 1;
-            grid.innerHTML += `
+            container.innerHTML += `
                 <div class="block">
                     <div class="overlay">
-                        <div style="font-size:9px;color:var(--blue);font-weight:bold" id="label-${id}">${sym}</div>
-                        <div class="price" id="price-${id}">0.00</div>
+                        <div style="font-size:8px; color:var(--blue);">${sym}</div>
+                        <div class="price" id="p-${id}">0.00</div>
                     </div>
-                    <div class="smc-info" id="smc-${id}">SYNCING DATA...</div>
-                    <div class="chart-container" id="chart-${id}"></div>
-                    <div class="signal" id="sig-${id}">SCANNING...</div>
+                    <div class="chart-box" id="chart-${id}"></div>
+                    <div class="sig-banner" id="sig-${id}">SCANNING...</div>
                 </div>`;
-            setTimeout(() => createChart(id, sym), 500);
+            loadTV(id, sym);
+            syncPrice(id, sym);
         });
     }
 
-    function createChart(id, symbol) {
-        const container = document.getElementById(`chart-${id}`);
-        if(!container) return;
-        
-        charts[id] = LightweightCharts.createChart(container, {
-            layout: { backgroundColor: 'transparent', textColor: '#666', fontSize: 10 },
-            grid: { vertLines: { visible: false }, horzLines: { color: '#161b22' } },
-            timeScale: { timeVisible: true, secondsVisible: true },
-            rightPriceScale: { borderVisible: false },
-            handleScale: false,
-            handleScroll: true
+    function loadTV(id, sym) {
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": "BINANCE:" + sym,
+            "interval": "1",
+            "timezone": "Asia/Karachi",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "container_id": "chart-" + id,
+            "hide_top_toolbar": true,
+            "hide_legend": true,
+            "save_image": false
         });
-
-        series[id] = charts[id].addCandlestickSeries({
-            upColor: '#00ff88', downColor: '#ff4d4d', borderVisible: false, wickUpColor: '#00ff88', wickDownColor: '#ff4d4d'
-        });
-
-        startStream(id, symbol);
     }
 
-    function startStream(id, symbol) {
-        if(sockets[id]) sockets[id].close();
-        sockets[id] = new WebSocket(`wss://ws.finnhub.io?token=${KEY}`);
-
-        sockets[id].onopen = () => {
-            sockets[id].send(JSON.stringify({'type':'subscribe', 'symbol': `BINANCE:${symbol}`}));
-        };
-
-        sockets[id].onmessage = (e) => {
-            const res = JSON.parse(e.data);
-            if(res.type === 'trade') {
-                const data = res.data[0];
-                const p = data.p;
-                document.getElementById(`price-${id}`).innerText = p.toFixed(2);
-                series[id].update({ time: Math.floor(data.t / 1000), open: p, high: p, low: p, close: p });
-                
-                let diff = p - (lastP[id] || p);
-                if(Math.abs(diff) > (p * 0.0001)) {
-                    let isUp = diff > 0;
-                    document.getElementById(`sig-${id}`).innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
-                    document.getElementById(`sig-${id}`).style.color = isUp ? "var(--neon)" : "var(--danger)";
-                    document.getElementById(`smc-${id}`).innerText = isUp ? "SMC: BULLISH BOS" : "SMC: LIQ SWEEP";
+    async function syncPrice(id, sym) {
+        setInterval(async () => {
+            try {
+                const res = await fetch(`https://finnhub.io{sym}&token=${KEY}`);
+                const data = await res.json();
+                if (data.c) {
+                    document.getElementById(`p-${id}`).innerText = data.c.toFixed(2);
+                    let sig = document.getElementById(`sig-${id}`);
+                    if (data.c > data.pc) {
+                        sig.innerText = "CALL ⬆️"; sig.style.color = "var(--neon)";
+                    } else {
+                        sig.innerText = "PUT ⬇️"; sig.style.color = "var(--danger)";
+                    }
                 }
-                lastP[id] = p;
-            }
-        };
+            } catch (e) {}
+        }, 3000);
     }
 
-    function changeAsset() {
-        let id = document.getElementById('block-id').value;
-        let sym = document.getElementById('asset-sym').value.toUpperCase().trim();
-        if(sym && id <= 4) {
-            document.getElementById(`label-${id}`).innerText = sym;
-            startStream(id, sym);
+    function updateAsset() {
+        let id = document.getElementById('b-id').value;
+        let sym = document.getElementById('b-sym').value.toUpperCase();
+        if(sym) {
+            document.getElementById(`chart-${id}`).innerHTML = '';
+            loadTV(id, sym);
+            syncPrice(id, sym);
         }
     }
 
-    window.onload = initSystem;
+    window.onload = init;
 </script>
 </body>
 </html>
