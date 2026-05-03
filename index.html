@@ -1,124 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER v34.0 | MASTER CONTINUITY</title>
-    <style>
-        :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; --warn: #ffab00; }
-        body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 5px; overflow: hidden; }
-        .nav { background: var(--card); padding: 8px; display: flex; gap: 5px; border-bottom: 2px solid var(--neon); margin-bottom: 8px; }
-        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; font-size: 12px; flex-grow: 1; outline: none; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .block { background: var(--card); border: 1px solid #1a1f26; border-radius: 12px; padding: 10px; min-height: 290px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-        .price { font-family: monospace; font-size: 18px; font-weight: bold; color: var(--neon); background: #000; padding: 5px; border-radius: 6px; border: 1px solid #222; }
-        .sig-val { font-size: 20px; font-weight: 900; padding: 8px; border-radius: 8px; margin-top: 5px; }
-        .time-tabs { display: flex; gap: 5px; justify-content: center; margin: 5px 0; }
-        .tab { font-size: 9px; padding: 4px 8px; border: 1px solid #333; border-radius: 4px; color: #444; font-weight: bold; }
-        .tab.active { border-color: var(--neon); color: var(--neon); background: rgba(0,255,136,0.15); box-shadow: 0 0 5px var(--neon); }
-        .expiry { font-size: 10px; color: var(--warn); font-weight: bold; margin-bottom: 5px; }
-        .intel { background: rgba(0,0,0,0.4); padding: 8px; border-radius: 8px; text-align: left; border: 1px solid #1e222d; }
-        .row { display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 3px; border-bottom: 1px solid #1e222d; }
-        .row b { color: #fff; }
-        .master-btn { width: 100%; padding: 15px; background: var(--neon); color: #000; border: none; border-radius: 10px; font-weight: 900; margin-top: 10px; }
-    </style>
-</head>
-<body onload="createUI()">
-
-<div class="nav">
-    <input type="number" id="b-id" value="1" style="max-width:35px">
-    <input type="text" id="b-sym" placeholder="BTCUSDT">
-    <button onclick="updateAsset()" style="background:var(--neon); border:none; border-radius:4px; padding:0 10px; font-weight:bold;">SET</button>
-</div>
-
-<div class="grid" id="root"></div>
-<button class="master-btn" id="act-btn" onclick="activate()">ACTIVATE CONTINUITY SYNC ✅</button>
-<audio id="beep" src="https://mixkit.co"></audio>
-
 <script>
     const KEY = 'd7rir1pr01qgahvdpft0d7rir1pr01qgahvdpftg';
     let isLive = false;
-    let pairs = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
+    let sockets = {};
+    let lastPrices = {};
 
-    function createUI() {
-        const root = document.getElementById('root');
-        root.innerHTML = '';
-        pairs.forEach((sym, i) => {
-            let id = i + 1;
-            root.innerHTML += `
-                <div class="block">
-                    <div style="font-size:9px; color:var(--blue); font-weight:900;" id="n-${id}">${sym}</div>
-                    <div class="price" id="p-${id}">0.00</div>
-                    <div class="time-tabs">
-                        <div class="tab" id="t1-${id}">1 MIN</div>
-                        <div class="tab" id="t3-${id}">3 MIN</div>
-                    </div>
-                    <div class="expiry" id="exp-${id}">EXPIRY: --:--</div>
-                    <div id="sig-${id}" class="sig-val" style="color:#333">SCANNING</div>
-                    <div class="intel">
-                        <div class="row"><span>Pattern:</span><b id="pat-${id}">--</b></div>
-                        <div class="row"><span>SMC/FVG:</span><b id="smc-${id}">--</b></div>
-                        <div class="row"><span>SR Level:</span><b id="sr-${id}">--</b></div>
-                    </div>
-                </div>`;
-        });
+    function activate() {
+        isLive = true;
+        document.getElementById('act-btn').innerText = "SYSTEM ONLINE ✅";
+        document.getElementById('act-btn').style.background = "#00d2ff";
+        
+        // Pehle se mojud pairs ko connect karein
+        const initialPairs = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
+        initialPairs.forEach((sym, i) => startStreaming(i + 1, sym));
     }
 
-    async function sync(id, sym) {
-        if(!isLive) return;
-        try {
-            const res = await fetch(`https://finnhub.io{sym}&token=${KEY}`);
-            const data = await res.json();
-            if(data.c) {
-                document.getElementById(`p-${id}`).innerText = data.c.toFixed(2);
-                let diff = data.c - data.pc;
-                let sig = document.getElementById(`sig-${id}`);
-                
-                // Continuity Logic (Marubozu/Trend Strength)
-                if(Math.abs(diff) > (data.c * 0.0004)) {
-                    let isUp = diff > 0;
-                    sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
-                    sig.style.color = isUp ? "var(--neon)" : "var(--danger)";
-                    
-                    // Highlight 1M and 3M for Continuity
-                    document.getElementById(`t1-${id}`).className = "tab active";
-                    document.getElementById(`t3-${id}`).className = "tab active";
-                    
-                    // Set Expiry Time (3 minutes from now)
-                    let now = new Date();
-                    now.setMinutes(now.getMinutes() + 3);
-                    document.getElementById(`exp-${id}`).innerText = "EXPIRY: " + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    
-                    document.getElementById(`pat-${id}`).innerText = "STRONG MARUBOZU";
-                    document.getElementById(`smc-${id}`).innerText = isUp ? "BULLISH BOS" : "BEARISH BOS";
-                    document.getElementById(`sr-${id}`).innerText = isUp ? "SUP: "+data.l.toFixed(1) : "RES: "+data.h.toFixed(1);
-                    document.getElementById('beep').play();
-                } else {
-                    sig.innerText = "WAIT ⏳"; sig.style.color = "var(--warn)";
-                    document.getElementById(`t1-${id}`).className = "tab";
-                    document.getElementById(`t3-${id}`).className = "tab";
-                    document.getElementById(`exp-${id}`).innerText = "EXPIRY: --:--";
-                }
+    function startStreaming(id, symbol) {
+        if(sockets[id]) sockets[id].close();
+
+        // WebSocket use kar rahe hain takay data foran aaye
+        sockets[id] = new WebSocket(`wss://ws.finnhub.io?token=${KEY}`);
+
+        sockets[id].onopen = () => {
+            sockets[id].send(JSON.stringify({'type':'subscribe', 'symbol': `BINANCE:${symbol}`}));
+        };
+
+        sockets[id].onmessage = (event) => {
+            const res = JSON.parse(event.data);
+            if(res.type === 'trade') {
+                const data = res.data[0];
+                const price = data.p;
+                const time = data.t;
+
+                // Update UI
+                document.getElementById(`p-${id}`).innerText = price.toFixed(2);
+                processLogic(id, price);
             }
-        } catch(e){}
+        };
+
+        sockets[id].onerror = () => {
+            document.getElementById(`p-${id}`).innerText = "RECONNECTING...";
+        };
+    }
+
+    function processLogic(id, currentP) {
+        let sig = document.getElementById(`sig-${id}`);
+        let oldP = lastPrices[id] || currentP;
+        let diff = currentP - oldP;
+
+        // Continuity & Pattern Logic
+        if (Math.abs(diff) > (currentP * 0.0001)) { // Sensitivity Filter
+            let isUp = diff > 0;
+            sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
+            sig.style.color = isUp ? "var(--neon)" : "var(--danger)";
+            
+            document.getElementById(`t1-${id}`).className = "tab active";
+            document.getElementById(`t3-${id}`).className = "tab active";
+            
+            // Expiry Calc (3 mins)
+            let expTime = new Date(Date.now() + 3 * 60000);
+            document.getElementById(`exp-${id}`).innerText = "EXPIRY: " + expTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            document.getElementById(`pat-${id}`).innerText = "MOMENTUM CONFIRMED";
+            document.getElementById(`smc-${id}`).innerText = isUp ? "BULLISH BREAKOUT" : "BEARISH SWEEP";
+            document.getElementById(`sr-${id}`).innerText = isUp ? "STRONG BUY" : "STRONG SELL";
+            
+            document.getElementById('beep').play();
+        } else {
+            // Agar price stagnant hai toh status scan par rakhein
+            if(!sig.innerText.includes("CALL") && !sig.innerText.includes("PUT")) {
+                sig.innerText = "SCANNING...";
+                sig.style.color = "#444";
+            }
+        }
+        lastPrices[id] = currentP;
     }
 
     function updateAsset() {
         let id = document.getElementById('b-id').value;
         let sym = document.getElementById('b-sym').value.toUpperCase().trim();
-        if(sym && id <= 4) { document.getElementById(`n-${id}`).innerText = sym; sync(id, sym); }
-    }
-
-    function activate() {
-        isLive = true;
-        document.getElementById('act-btn').innerText = "SYSTEM ONLINE ✅";
-        setInterval(() => {
-            for(let i=1; i<=4; i++) {
-                let s = document.getElementById(`n-${i}`).innerText;
-                sync(i, s);
-            }
-        }, 3000);
+        if(sym && id <= 4) {
+            document.getElementById(`n-${id}`).innerText = sym;
+            startStreaming(id, sym);
+        }
     }
 </script>
-</body>
-</html>
