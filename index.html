@@ -2,97 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER | GOOGLE PROXY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SNIPER | CLOUD SYNC</title>
     <style>
-        :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; }
-        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; padding: 10px; }
-        .header { background: var(--card); padding: 10px; border-radius: 12px; border-bottom: 2px solid var(--neon); display: flex; gap: 5px; margin-bottom: 15px; }
-        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 10px; border-radius: 8px; flex-grow: 1; outline: none; }
-        .btn { background: var(--neon); border: none; font-weight: 900; padding: 10px; border-radius: 8px; cursor: pointer; }
-        .main-card { background: var(--card); border: 2px solid #1a1f26; border-radius: 20px; padding: 20px; text-align: center; }
-        .price { font-family: monospace; font-size: 35px; font-weight: 900; color: var(--neon); margin: 15px 0; }
-        .sig-box { font-size: 24px; font-weight: 900; padding: 15px; border-radius: 12px; background: rgba(0,0,0,0.5); border: 1px solid #333; margin-top: 10px; }
-        .intel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-top: 20px; font-size: 11px; }
-        .row { border-bottom: 1px solid #1e222d; padding: 5px 0; display: flex; justify-content: space-between; }
-        .row b { color: #fff; }
+        :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; }
+        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; text-align: center; padding: 20px; }
+        .card { background: var(--card); border: 2px solid var(--neon); border-radius: 20px; padding: 30px; margin-top: 50px; box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+        .price { font-size: 45px; font-weight: 900; color: var(--neon); margin: 20px 0; font-family: monospace; }
+        .status { font-size: 18px; color: #888; margin-bottom: 10px; }
     </style>
 </head>
-<body onload="startProxySync()">
-
-<div class="header">
-    <input type="text" id="symIn" placeholder="BTCUSDT">
-    <button class="btn" onclick="updateAsset()">SYNC</button>
-</div>
-
-<div class="main-card">
-    <div style="font-size:12px; color:var(--blue); font-weight:bold;" id="label">PROXY-TUNNEL TERMINAL</div>
-    <div class="price" id="p-val">CONNECTING...</div>
-    <div id="sig-val" class="sig-box" style="color:#444">SCANNING</div>
-    
-    <div class="intel-grid">
-        <div class="row"><span>SMC/BOS:</span><b id="v-bos">--</b></div>
-        <div class="row"><span>FVG LEVEL:</span><b id="v-fvg">--</b></div>
-        <div class="row"><span>Trend:</span><b id="v-trend">STABLE</b></div>
-        <div class="row"><span>Accuracy:</span><b>94.5%</b></div>
+<body onload="startSync()">
+    <div class="card">
+        <div class="status" id="stat">INITIALIZING CLOUD TUNNEL...</div>
+        <h2 id="sym">BTCUSDT</h2>
+        <div class="price" id="p-val">0.00</div>
+        <div id="sig" style="font-size:25px; font-weight:bold; margin-top:20px;">SCANNING</div>
     </div>
-</div>
 
 <script>
-    let currentAsset = "BTCUSDT";
     let lastP = 0;
-
-    async function fetchViaProxy() {
-        // Google Script Proxy tareeqa takay block na ho
-        const proxyUrl = 'https://yahoo.com' + currentAsset.replace('USDT', '-USD');
-        
+    async function fetchData() {
         try {
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            const p = data.chart.result[0].meta.regularMarketPrice;
+            // Hum aik proxy service use kar rahay hain jo Binance ko block nahi honay deti
+            const url = 'https://binance.com';
+            const proxyUrl = 'https://allorigins.win' + encodeURIComponent(url);
             
-            if (p) {
-                document.getElementById('p-val').innerText = p.toFixed(2);
-                processAnalysis(p);
+            const response = await fetch(proxyUrl);
+            const rawData = await response.json();
+            const data = JSON.parse(rawData.contents);
+            
+            const p = parseFloat(data.price);
+            document.getElementById('p-val').innerText = p.toFixed(2);
+            document.getElementById('stat').innerText = "CLOUD TUNNEL: ACTIVE ✅";
+            document.getElementById('stat').style.color = "var(--neon)";
+
+            if(lastP !== 0) {
+                let diff = p - lastP;
+                let s = document.getElementById('sig');
+                if(Math.abs(diff) > (p * 0.00005)) {
+                    s.innerText = diff > 0 ? "CALL ⬆️" : "PUT ⬇️";
+                    s.style.color = diff > 0 ? "#00ff88" : "#ff4d4d";
+                }
             }
+            lastP = p;
         } catch (e) {
-            // Agar Yahoo bhi block ho toh Binance backup but different URL
-            fetchBackup();
+            document.getElementById('p-val').innerText = "RETRYING...";
+            document.getElementById('stat').innerText = "TUNNEL BOCKED - RETRYING...";
         }
     }
-
-    async function fetchBackup() {
-        try {
-            const res = await fetch(`https://binance.com{currentAsset}`);
-            const data = await res.json();
-            document.getElementById('p-val').innerText = parseFloat(data.price).toFixed(2);
-        } catch(e) {
-            document.getElementById('p-val').innerText = "LINK BLOCKED";
-        }
-    }
-
-    function processAnalysis(p) {
-        let diff = p - lastP;
-        if (lastP !== 0 && Math.abs(diff) > (p * 0.00001)) {
-            let isUp = diff > 0;
-            let sig = document.getElementById('sig-val');
-            sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
-            sig.style.color = isUp ? "#00ff88" : "#ff4d4d";
-            document.getElementById('v-bos').innerText = isUp ? "BULLISH" : "BEARISH";
-            document.getElementById('v-trend').innerText = isUp ? "STRONG BUY" : "STRONG SELL";
-            document.getElementById('v-fvg').innerText = (p * (isUp ? 0.9998 : 1.0002)).toFixed(2);
-        }
-        lastP = p;
-    }
-
-    function updateAsset() {
-        let val = document.getElementById('symIn').value.toUpperCase().trim();
-        if(val) { currentAsset = val; lastP = 0; fetchViaProxy(); }
-    }
-
-    function startProxySync() {
-        setInterval(fetchViaProxy, 3000); // Har 3 second baad data fetch
-    }
+    function startSync() { setInterval(fetchData, 4000); }
 </script>
 </body>
 </html>
