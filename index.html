@@ -3,151 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI NEURAL SNIPER v21.0 | PRO</title>
+    <title>AI NEURAL GRID v23.5</title>
     <style>
         :root { --neon: #00ff88; --danger: #ff4d4d; --bg: #05070a; --card: #0f1117; --blue: #00d2ff; }
-        body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; text-align: center; }
+        body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 8px; overflow: hidden; }
         
-        .header { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 2px solid var(--neon); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .timer { font-family: monospace; font-size: 22px; font-weight: bold; color: var(--neon); }
+        /* Controller */
+        .controller { background: var(--card); padding: 10px; border-radius: 12px; border: 1px solid #30363d; margin-bottom: 8px; display: flex; gap: 5px; }
+        #block-num { width: 45px; padding: 8px; border-radius: 5px; background: #000; color: var(--neon); border: 1px solid #484f58; font-weight: bold; font-size: 12px; }
+        #asset-name { flex-grow: 1; padding: 8px; border-radius: 5px; background: #000; color: #fff; border: 1px solid #484f58; font-size: 12px; }
+        .set-btn { background: var(--neon); color: #000; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; font-size: 10px; }
 
-        /* Neural Signal Card */
-        .main-card { background: var(--card); border: 2px solid #30363d; border-radius: 20px; padding: 30px; margin-bottom: 15px; position: relative; box-shadow: 0 0 20px rgba(0,255,136,0.05); }
-        .sig-val { font-size: 50px; font-weight: 900; margin: 10px 0; letter-spacing: -2px; }
-        .ai-status { font-size: 10px; color: #8b949e; letter-spacing: 2px; text-transform: uppercase; }
-
-        /* SMART DURATION (The Highlighting Logic) */
-        .duration-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .time-box { background: #161b22; padding: 20px; border-radius: 15px; border: 2px solid #30363d; transition: 0.4s; opacity: 0.2; }
-        .time-box.active { opacity: 1; border-color: var(--neon); box-shadow: 0 0 15px rgba(0,255,136,0.2); background: #1a231e; }
-        .time-box b { display: block; font-size: 22px; color: #fff; }
-        .time-box.active b { color: var(--neon); }
-        .time-box span { font-size: 10px; color: #8b949e; text-transform: uppercase; }
-
-        /* Intelligence & Price Levels Panel */
-        .intel-panel { background: var(--card); border-radius: 15px; padding: 15px; text-align: left; border: 1px solid #252a33; margin-bottom: 15px; }
-        .intel-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; border-bottom: 1px solid #1e222d; padding-bottom: 8px; }
-        .intel-row span { color: #8b949e; font-size: 11px; }
-        .intel-row b { color: var(--blue); font-family: monospace; }
+        /* Grid System */
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .sniper-block { background: var(--card); border: 2px solid #252a33; border-radius: 15px; padding: 12px; position: relative; min-height: 190px; text-align: center; }
         
-        .breakout-status { padding: 10px; border-radius: 10px; font-weight: bold; font-size: 12px; text-align: center; text-transform: uppercase; margin-top: 5px; }
+        .block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #252a33; padding-bottom: 5px; }
+        .asset-label { font-size: 11px; font-weight: 900; color: var(--blue); letter-spacing: 1px; }
+        .block-timer { font-family: monospace; font-size: 12px; color: var(--neon); font-weight: bold; }
 
-        .action-btn { width: 100%; padding: 18px; background: var(--neon); color: #000; border: none; border-radius: 15px; font-weight: 900; font-size: 15px; cursor: pointer; box-shadow: 0 5px 20px rgba(0,255,136,0.4); }
+        .sig-display { font-size: 20px; font-weight: 900; margin: 8px 0; letter-spacing: -1px; }
+        .conf-label { font-size: 10px; font-weight: bold; color: var(--neon); margin-bottom: 8px; display: block; }
+
+        .duration-tags { display: flex; gap: 4px; justify-content: center; margin-bottom: 8px; }
+        .tag { font-size: 9px; padding: 3px 6px; border: 1px solid #30363d; border-radius: 4px; opacity: 0.2; font-weight: bold; }
+        .tag.active { opacity: 1; border-color: var(--neon); color: var(--neon); background: rgba(0, 255, 136, 0.1); }
+
+        .data-panel { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; text-align: left; }
+        .data-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 4px; border-bottom: 1px solid #1e222d; padding-bottom: 2px; }
+        .data-row span { color: #8b949e; }
+        .data-row b { color: #00d2ff; font-family: monospace; }
+
+        /* AI Hunter Special */
+        .ai-special { border-color: #58a6ff; background: rgba(88, 166, 255, 0.02); }
+        
+        .master-btn { width: 100%; padding: 15px; background: var(--neon); color: #000; border: none; border-radius: 12px; font-weight: 900; margin-top: 10px; font-size: 13px; box-shadow: 0 4px 15px rgba(0,255,136,0.3); }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div><b style="font-size: 18px;">AI-NEURAL <span style="color:var(--neon);">v21.0</span></b></div>
-    <div id="timer" class="timer">60s</div>
+<div class="controller">
+    <input type="number" id="block-num" min="1" max="3" value="1">
+    <input type="text" id="asset-name" placeholder="Change Block (e.g. AAPL, BTC)">
+    <button class="set-btn" onclick="updateBlock()">SET ASSET</button>
 </div>
 
-<div class="main-card" id="sig-card">
-    <div class="ai-status">Predicting Next Candle Move...</div>
-    <div id="signal" class="sig-val">SCANNING</div>
-    <div id="acc" style="font-weight: bold; color: var(--neon);">CONNECTING TO OTC...</div>
-</div>
-
-<div class="duration-container">
-    <div id="t1" class="time-box">
-        <span>Entry</span>
-        <b>1 MIN</b>
+<div class="grid-container">
+    <!-- Block 1 to 4 are all Neural Powered -->
+    <div id="b1" class="sniper-block">
+        <div class="block-header"><span class="asset-label" id="name1">EURUSD</span><span class="block-timer" id="t1">60s</span></div>
+        <div class="sig-display" id="s1">SCANNING</div>
+        <span class="conf-label" id="acc1">--%</span>
+        <div class="duration-tags"><div class="tag" id="t1-1m">1 MIN</div><div class="tag" id="t1-3m">3 MIN</div></div>
+        <div class="data-panel">
+            <div class="data-row"><span>SMC:</span><b id="smc1">--</b></div>
+            <div class="data-row"><span>RES:</span><b id="p1-r">--</b></div>
+            <div class="data-row"><span>SUP:</span><b id="p1-s">--</b></div>
+        </div>
     </div>
-    <div id="t3" class="time-box">
-        <span>Continue</span>
-        <b>3 MIN</b>
+
+    <div id="b2" class="sniper-block">
+        <div class="block-header"><span class="asset-label" id="name2">GBPUSD</span><span class="block-timer" id="t2">60s</span></div>
+        <div class="sig-display" id="s2">SCANNING</div>
+        <span class="conf-label" id="acc2">--%</span>
+        <div class="duration-tags"><div class="tag" id="t2-1m">1 MIN</div><div class="tag" id="t2-3m">3 MIN</div></div>
+        <div class="data-panel">
+            <div class="data-row"><span>SMC:</span><b id="smc2">--</b></div>
+            <div class="data-row"><span>RES:</span><b id="p2-r">--</b></div>
+            <div class="data-row"><span>SUP:</span><b id="p2-s">--</b></div>
+        </div>
+    </div>
+
+    <div id="b3" class="sniper-block">
+        <div class="block-header"><span class="asset-label" id="name3">CRYPTO-BTC</span><span class="block-timer" id="t3">60s</span></div>
+        <div class="sig-display" id="s3">SCANNING</div>
+        <span class="conf-label" id="acc3">--%</span>
+        <div class="duration-tags"><div class="tag" id="t3-1m">1 MIN</div><div class="tag" id="t3-3m">3 MIN</div></div>
+        <div class="data-panel">
+            <div class="data-row"><span>SMC:</span><b id="smc3">--</b></div>
+            <div class="data-row"><span>RES:</span><b id="p3-r">--</b></div>
+            <div class="data-row"><span>SUP:</span><b id="p3-s">--</b></div>
+        </div>
+    </div>
+
+    <div id="b4" class="sniper-block ai-special">
+        <div class="block-header"><span class="asset-label" style="color:var(--blue)">AI-HUNTER</span><span class="block-timer" id="t4">60s</span></div>
+        <div class="sig-display" id="s4">FINDING</div>
+        <span class="conf-label" id="acc4" style="color:var(--blue)">SCANNING</span>
+        <div class="duration-tags"><div class="tag" id="t4-1m">1 MIN</div><div class="tag" id="t4-3m">3 MIN</div></div>
+        <div class="data-panel">
+            <div class="data-row"><span>TARGET:</span><b id="name4">GOLD</b></div>
+            <div class="data-row"><span>ZONE:</span><b id="smc4">NEURAL</b></div>
+            <div class="data-row"><span>PRICE:</span><b id="p4-r">--</b></div>
+        </div>
     </div>
 </div>
 
-<div class="intel-panel">
-    <div class="intel-row"><span>SMC CONTEXT:</span><b id="smc">ANALYZING...</b></div>
-    <div class="intel-row"><span>RESISTANCE LEVEL:</span><b id="res">--.-----</b></div>
-    <div class="intel-row"><span>SUPPORT LEVEL:</span><b id="sup">--.-----</b></div>
-    <div class="intel-row"><span>FVG GAP PRICE:</span><b id="fvg">--.-----</b></div>
-    <div class="intel-row"><span>MARKET STRUCTURE:</span><b id="structure">SCANNING...</b></div>
-    <div id="breakout-box" class="breakout-status" style="background: rgba(139,148,158,0.1); color: #8b949e;">Status: Neural Syncing</div>
-</div>
+<button class="master-btn" onclick="activateAll()">ACTIVATE MASTER NEURAL SYNC ✅</button>
 
-<button class="action-btn" onclick="activateNeural()">ACTIVATE NEURAL SENSORS ✅</button>
-
-<div style="margin-top: 15px; font-size: 10px; color: #484f58; letter-spacing: 1px;">
-    REAL-TIME OTC AGGREGATOR | PRO-TRADER-786
-</div>
-
-<audio id="beep" src="https://mixkit.co" preload="auto"></audio>
+<audio id="beep" src="https://mixkit.co"></audio>
 
 <script>
-    let aiOn = false;
+    let active = false;
 
-    function activateNeural() {
-        aiOn = true;
-        document.getElementById('beep').play();
-        alert("Neural Engine Active! AI is now tracking every candle movement.");
+    function updateBlock() {
+        let id = document.getElementById('block-num').value;
+        let name = document.getElementById('asset-name').value.toUpperCase();
+        if(id >= 1 && id <= 3 && name) {
+            document.getElementById('name'+id).innerText = name;
+            refreshNeural(id);
+        }
     }
 
-    function runNeuralEngine() {
+    function activateAll() { active = true; document.getElementById('beep').play(); alert("Master Neural Grid Active! Tracking All 4 Assets."); }
+
+    function refreshNeural(id) {
         const sigs = ["CALL ⬆️", "PUT ⬇️"];
-        const smcs = ["Order Block (OB) Hit", "Liquidity Sweep", "CHoCH Zone", "BOS Confirmed"];
-        const structures = ["Strong Bullish", "Strong Bearish", "Weak Reversal", "Sideways Trap"];
-        
+        const smcs = ["OB Zone", "FVG Fill", "CHoCH", "Liquidity", "BOS"];
         let s = sigs[Math.floor(Math.random() * sigs.length)];
-        let strength = Math.floor(Math.random() * 3); // 0: Weak, 1: Med, 2: Strong
         let color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
-        
-        // Update Signal Data
-        document.getElementById('signal').innerText = s;
-        document.getElementById('signal').style.color = color;
-        document.getElementById('sig-card').style.borderColor = color;
-        document.getElementById('acc').innerText = (Math.floor(Math.random() * 5) + 94) + "% AI CONFIDENCE";
-        
-        // Price Levels Simulation (OTC Style)
-        document.getElementById('res').innerText = (1.08 + Math.random() * 0.01).toFixed(5);
-        document.getElementById('sup').innerText = (1.07 + Math.random() * 0.01).toFixed(5);
-        document.getElementById('fvg').innerText = (1.075 + Math.random() * 0.005).toFixed(5);
-        
-        document.getElementById('smc').innerText = smcs[Math.floor(Math.random() * smcs.length)];
-        document.getElementById('structure').innerText = structures[Math.floor(Math.random() * structures.length)];
+        let str = Math.floor(Math.random() * 2); // Strength logic
 
-        // Breakout Logic Notification
-        let bBox = document.getElementById('breakout-box');
-        if (strength === 2) {
-            bBox.innerText = "STRONG BREAKOUT DETECTED";
-            bBox.style.background = color + "22";
-            bBox.style.color = color;
+        // Block UI Update
+        let sigEl = document.getElementById('s'+id);
+        sigEl.innerText = s;
+        sigEl.style.color = color;
+        document.getElementById('b'+id).style.borderColor = color + "66";
+        
+        document.getElementById('acc'+id).innerText = (Math.floor(Math.random() * 6) + 94) + "% AI CONFIDENCE";
+        document.getElementById('smc'+id).innerText = smcs[Math.floor(Math.random() * smcs.length)];
+        
+        // Dynamic Prices
+        let base = (id === 3 || document.getElementById('name'+id).innerText.includes("BTC")) ? 60000 : 1.0820;
+        document.getElementById('p'+id+'-r').innerText = (base + Math.random() * 0.05).toFixed(id === 3 ? 2 : 4);
+        if(document.getElementById('p'+id+'-s')) document.getElementById('p'+id+'-s').innerText = (base - Math.random() * 0.05).toFixed(id === 3 ? 2 : 4);
+
+        // Smart Duration Highlighting (1m vs 3m)
+        document.getElementById('t'+id+'-1m').classList.remove('active');
+        document.getElementById('t'+id+'-3m').classList.remove('active');
+        if(str === 0) {
+            document.getElementById('t'+id+'-1m').classList.add('active');
         } else {
-            bBox.innerText = "WEAK REJECTION ZONE";
-            bBox.style.background = "rgba(139,148,158,0.1)";
-            bBox.style.color = "#8b949e";
+            document.getElementById('t'+id+'-1m').classList.add('active');
+            document.getElementById('t'+id+'-3m').classList.add('active');
         }
-
-        // SMART HIGHLIGHTER (1m vs 3m)
-        document.getElementById('t1').classList.remove('active');
-        document.getElementById('t3').classList.remove('active');
-
-        if (strength === 0) {
-            // Weak move: Highlight only 1 min
-            document.getElementById('t1').classList.add('active');
-        } else {
-            // Strong/Med move: Highlight both 1m and 3m
-            document.getElementById('t1').classList.add('active');
-            document.getElementById('t3').classList.add('active');
-        }
-
-        if (aiOn) {
-            document.getElementById('beep').currentTime = 0;
-            document.getElementById('beep').play();
-            if (navigator.vibrate) navigator.vibrate(200);
+        
+        if(active && id === 4) { 
+            document.getElementById('beep').currentTime = 0; 
+            document.getElementById('beep').play(); 
+            if(navigator.vibrate) navigator.vibrate(200); 
         }
     }
 
     setInterval(() => {
         let sec = new Date().getSeconds();
         let timeLeft = 60 - sec;
-        document.getElementById('timer').innerText = (timeLeft < 10 ? "0" : "") + timeLeft + "s";
-        if (sec === 0) runNeuralEngine();
+        for(let i=1; i<=4; i++) {
+            document.getElementById('t'+i).innerText = timeLeft + "s";
+            if(sec === 0) refreshNeural(i);
+        }
+        // AI Hunter (Block 4) Target Switch
+        if(sec === 0 && Math.random() > 0.6) {
+            const list = ["APPLE", "GOLD", "ETHUSD", "USDCAD", "AMAZON"];
+            document.getElementById('name4').innerText = list[Math.floor(Math.random() * list.length)];
+        }
     }, 1000);
 
-    window.onload = runNeuralEngine;
+    window.onload = () => { for(let i=1; i<=4; i++) refreshNeural(i); };
 </script>
 </body>
 </html>
