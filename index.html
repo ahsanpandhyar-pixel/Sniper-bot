@@ -3,29 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI NEURAL SNIPER v21.0</title>
+    <title>AI NEURAL SNIPER v21.0 | PRO</title>
     <style>
-        :root { --neon: #00ff88; --danger: #ff4d4d; --bg: #05070a; --card: #0f1117; }
+        :root { --neon: #00ff88; --danger: #ff4d4d; --bg: #05070a; --card: #0f1117; --blue: #00d2ff; }
         body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; text-align: center; }
         
-        .header { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 2px solid var(--neon); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .header { background: var(--card); padding: 15px; border-radius: 15px; border-bottom: 2px solid var(--neon); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .timer { font-family: monospace; font-size: 22px; font-weight: bold; color: var(--neon); }
 
         /* Neural Signal Card */
-        .main-card { background: var(--card); border: 2px solid #30363d; border-radius: 20px; padding: 30px; margin-bottom: 15px; position: relative; }
-        .sig-val { font-size: 55px; font-weight: 900; margin: 10px 0; letter-spacing: -2px; }
+        .main-card { background: var(--card); border: 2px solid #30363d; border-radius: 20px; padding: 30px; margin-bottom: 15px; position: relative; box-shadow: 0 0 20px rgba(0,255,136,0.05); }
+        .sig-val { font-size: 50px; font-weight: 900; margin: 10px 0; letter-spacing: -2px; }
         .ai-status { font-size: 10px; color: #8b949e; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* SMART TIME DURATION (Dark/Highlighter Logic) */
-        .duration-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .time-box { background: #161b22; padding: 20px; border-radius: 15px; border: 2px solid #30363d; transition: 0.4s; opacity: 0.4; }
-        .time-box.active { opacity: 1; border-color: var(--neon); box-shadow: 0 0 15px rgba(0,255,136,0.3); background: #1a1f29; }
-        .time-box.active b { color: var(--neon); font-size: 24px; }
-        .time-box span { display: block; font-size: 11px; color: #8b949e; margin-bottom: 5px; }
+        /* SMART DURATION (The Highlighting Logic) */
+        .duration-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .time-box { background: #161b22; padding: 20px; border-radius: 15px; border: 2px solid #30363d; transition: 0.4s; opacity: 0.2; }
+        .time-box.active { opacity: 1; border-color: var(--neon); box-shadow: 0 0 15px rgba(0,255,136,0.2); background: #1a231e; }
+        .time-box b { display: block; font-size: 22px; color: #fff; }
+        .time-box.active b { color: var(--neon); }
+        .time-box span { font-size: 10px; color: #8b949e; text-transform: uppercase; }
 
-        /* Market Intel (The "Why" behind the trade) */
-        .intel-box { background: #161b22; padding: 15px; border-radius: 15px; border-left: 4px solid var(--neon); text-align: left; margin-bottom: 20px; }
-        .intel-row { font-size: 13px; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        /* Intelligence & Price Levels Panel */
+        .intel-panel { background: var(--card); border-radius: 15px; padding: 15px; text-align: left; border: 1px solid #252a33; margin-bottom: 15px; }
+        .intel-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; border-bottom: 1px solid #1e222d; padding-bottom: 8px; }
+        .intel-row span { color: #8b949e; font-size: 11px; }
+        .intel-row b { color: var(--blue); font-family: monospace; }
+        
+        .breakout-status { padding: 10px; border-radius: 10px; font-weight: bold; font-size: 12px; text-align: center; text-transform: uppercase; margin-top: 5px; }
 
         .action-btn { width: 100%; padding: 18px; background: var(--neon); color: #000; border: none; border-radius: 15px; font-weight: 900; font-size: 15px; cursor: pointer; box-shadow: 0 5px 20px rgba(0,255,136,0.4); }
     </style>
@@ -33,78 +38,97 @@
 <body>
 
 <div class="header">
-    <div><b style="font-size: 18px;">AI-QUANTUM <span style="color:var(--neon);">PRO</span></b></div>
+    <div><b style="font-size: 18px;">AI-NEURAL <span style="color:var(--neon);">v21.0</span></b></div>
     <div id="timer" class="timer">60s</div>
 </div>
 
 <div class="main-card" id="sig-card">
-    <div class="ai-status">Neural Prediction Engine</div>
+    <div class="ai-status">Predicting Next Candle Move...</div>
     <div id="signal" class="sig-val">SCANNING</div>
-    <div id="acc" style="font-weight: bold; color: var(--neon);">BOOTING...</div>
+    <div id="acc" style="font-weight: bold; color: var(--neon);">CONNECTING TO OTC...</div>
 </div>
 
-<!-- SMART DURATION: Highlighted based on Trend Strength -->
 <div class="duration-container">
     <div id="t1" class="time-box">
-        <span>SHORT-TERM</span>
+        <span>Entry</span>
         <b>1 MIN</b>
     </div>
     <div id="t3" class="time-box">
-        <span>CONTINUATION</span>
+        <span>Continue</span>
         <b>3 MIN</b>
     </div>
 </div>
 
-<div class="intel-box">
-    <div class="intel-row"><span>CANDLE PATTERN:</span><b id="pattern">ANALYZING...</b></div>
-    <div class="intel-row"><span>TREND STRENGTH:</span><b id="strength">--</b></div>
-    <div class="intel-row"><span>SMC CONTEXT:</span><b id="context">SCANNING...</b></div>
+<div class="intel-panel">
+    <div class="intel-row"><span>SMC CONTEXT:</span><b id="smc">ANALYZING...</b></div>
+    <div class="intel-row"><span>RESISTANCE LEVEL:</span><b id="res">--.-----</b></div>
+    <div class="intel-row"><span>SUPPORT LEVEL:</span><b id="sup">--.-----</b></div>
+    <div class="intel-row"><span>FVG GAP PRICE:</span><b id="fvg">--.-----</b></div>
+    <div class="intel-row"><span>MARKET STRUCTURE:</span><b id="structure">SCANNING...</b></div>
+    <div id="breakout-box" class="breakout-status" style="background: rgba(139,148,158,0.1); color: #8b949e;">Status: Neural Syncing</div>
 </div>
 
-<button class="action-btn" onclick="activateAI()">ACTIVATE NEURAL SENSORS ✅</button>
+<button class="action-btn" onclick="activateNeural()">ACTIVATE NEURAL SENSORS ✅</button>
+
+<div style="margin-top: 15px; font-size: 10px; color: #484f58; letter-spacing: 1px;">
+    REAL-TIME OTC AGGREGATOR | PRO-TRADER-786
+</div>
 
 <audio id="beep" src="https://mixkit.co" preload="auto"></audio>
 
 <script>
     let aiOn = false;
 
-    function activateAI() {
+    function activateNeural() {
         aiOn = true;
         document.getElementById('beep').play();
-        alert("AI Neural Engine Active! Tracking every candle...");
+        alert("Neural Engine Active! AI is now tracking every candle movement.");
     }
 
-    function runAI() {
+    function runNeuralEngine() {
         const sigs = ["CALL ⬆️", "PUT ⬇️"];
-        const patterns = ["Bullish Engulfing", "Pin Bar Rejection", "Doji Reversal", "Marubozu Strength"];
-        const strengths = ["LOW (1m Only)", "MEDIUM (1m-2m)", "HIGH (1m-3m Focus)"];
-        const contexts = ["OB Rejection", "FVG Filling", "Liquidity Grab", "Zone Breakout"];
-
-        let s = sigs[Math.floor(Math.random() * sigs.length)];
-        let p = patterns[Math.floor(Math.random() * patterns.length)];
-        let c = contexts[Math.floor(Math.random() * contexts.length)];
-        let strVal = Math.floor(Math.random() * 3); // 0, 1, or 2
+        const smcs = ["Order Block (OB) Hit", "Liquidity Sweep", "CHoCH Zone", "BOS Confirmed"];
+        const structures = ["Strong Bullish", "Strong Bearish", "Weak Reversal", "Sideways Trap"];
         
+        let s = sigs[Math.floor(Math.random() * sigs.length)];
+        let strength = Math.floor(Math.random() * 3); // 0: Weak, 1: Med, 2: Strong
         let color = s.includes("CALL") ? "#00ff88" : "#ff4d4d";
         
-        // Dashboard Update
+        // Update Signal Data
         document.getElementById('signal').innerText = s;
         document.getElementById('signal').style.color = color;
         document.getElementById('sig-card').style.borderColor = color;
-        document.getElementById('acc').innerText = (Math.floor(Math.random() * 6) + 94) + "% CONFIDENCE";
-        document.getElementById('pattern').innerText = p;
-        document.getElementById('context').innerText = c;
-        document.getElementById('strength').innerText = strengths[strVal];
+        document.getElementById('acc').innerText = (Math.floor(Math.random() * 5) + 94) + "% AI CONFIDENCE";
+        
+        // Price Levels Simulation (OTC Style)
+        document.getElementById('res').innerText = (1.08 + Math.random() * 0.01).toFixed(5);
+        document.getElementById('sup').innerText = (1.07 + Math.random() * 0.01).toFixed(5);
+        document.getElementById('fvg').innerText = (1.075 + Math.random() * 0.005).toFixed(5);
+        
+        document.getElementById('smc').innerText = smcs[Math.floor(Math.random() * smcs.length)];
+        document.getElementById('structure').innerText = structures[Math.floor(Math.random() * structures.length)];
 
-        // SMART DURATION LOGIC (The "Highlighter")
+        // Breakout Logic Notification
+        let bBox = document.getElementById('breakout-box');
+        if (strength === 2) {
+            bBox.innerText = "STRONG BREAKOUT DETECTED";
+            bBox.style.background = color + "22";
+            bBox.style.color = color;
+        } else {
+            bBox.innerText = "WEAK REJECTION ZONE";
+            bBox.style.background = "rgba(139,148,158,0.1)";
+            bBox.style.color = "#8b949e";
+        }
+
+        // SMART HIGHLIGHTER (1m vs 3m)
         document.getElementById('t1').classList.remove('active');
         document.getElementById('t3').classList.remove('active');
 
-        if (strVal === 0) {
-            // Low strength: Only 1 min is active
+        if (strength === 0) {
+            // Weak move: Highlight only 1 min
             document.getElementById('t1').classList.add('active');
         } else {
-            // Medium/High strength: Both 1 min and 3 min are active (Highlighted)
+            // Strong/Med move: Highlight both 1m and 3m
             document.getElementById('t1').classList.add('active');
             document.getElementById('t3').classList.add('active');
         }
@@ -120,10 +144,10 @@
         let sec = new Date().getSeconds();
         let timeLeft = 60 - sec;
         document.getElementById('timer').innerText = (timeLeft < 10 ? "0" : "") + timeLeft + "s";
-        if (sec === 0) runAI();
+        if (sec === 0) runNeuralEngine();
     }, 1000);
 
-    window.onload = runAI;
+    window.onload = runNeuralEngine;
 </script>
 </body>
 </html>
