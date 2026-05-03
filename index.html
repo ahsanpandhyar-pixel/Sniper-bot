@@ -3,144 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI SNIPER v34.0 | FINAL</title>
+    <!-- Mobile App Settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>AI SNIPER v34.0 | PRICE-FIX</title>
+    <script src="https://unpkg.com"></script>
     <style>
-        :root { --neon: #00ff88; --danger: #ff4d4d; --bg: #05070b; --card: #0d1117; --blue: #00d2ff; --warn: #ffab00; }
-        body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 5px; overflow-x: hidden; }
+        :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; }
+        body { background: var(--bg); color: #e1e1e1; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; touch-action: manipulation; }
         
-        /* Master Search Controller */
-        .controller { background: var(--card); padding: 10px; border-radius: 12px; border-bottom: 2px solid var(--neon); margin-bottom: 8px; display: flex; gap: 5px; }
-        #block-num { width: 40px; padding: 8px; border-radius: 5px; background: #000; color: var(--neon); border: 1px solid #484f58; font-weight: bold; }
-        #asset-name { flex-grow: 1; padding: 8px; border-radius: 5px; background: #000; color: #fff; border: 1px solid #484f58; font-size: 12px; }
-        .set-btn { background: var(--neon); color: #000; border: none; padding: 8px 12px; border-radius: 5px; font-weight: 900; font-size: 10px; }
+        .nav { background: var(--card); padding: 10px; display: flex; gap: 8px; border-bottom: 2px solid var(--neon); height: 50px; align-items: center; box-sizing: border-box; }
+        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; font-size: 12px; outline: none; }
+        .set-btn { background: var(--neon); border: none; font-weight: 900; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; }
 
-        /* 4-Block Grid */
-        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .sniper-block { background: var(--card); border: 2px solid #252a33; border-radius: 15px; padding: 12px; min-height: 260px; text-align: center; position: relative; transition: 0.3s; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: calc(100vh - 50px); padding: 5px; box-sizing: border-box; }
+        .block { background: var(--card); border-radius: 12px; display: flex; flex-direction: column; position: relative; border: 1px solid #1a1f26; overflow: hidden; }
         
-        .block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; border-bottom: 1px solid #252a33; padding-bottom: 3px; }
-        .asset-label { font-size: 10px; font-weight: 900; color: var(--blue); letter-spacing: 1px; }
-        .timer { font-family: monospace; font-size: 11px; color: var(--neon); font-weight: bold; }
-
-        /* PRICE DISPLAY (Added Back) */
-        .price-display { background: #000; color: var(--neon); font-family: monospace; font-size: 16px; font-weight: bold; padding: 5px; border-radius: 6px; margin: 5px 0; border: 1px solid #1a1f26; }
-
-        .sig-val { font-size: 20px; font-weight: 900; margin: 5px 0; }
-        .tag-row { display: flex; gap: 4px; justify-content: center; margin-bottom: 8px; }
-        .tag { font-size: 9px; padding: 3px 6px; border: 1px solid #30363d; border-radius: 4px; opacity: 0.15; font-weight: bold; }
-        .tag.active { opacity: 1; border-color: var(--neon); color: var(--neon); background: rgba(0, 255, 136, 0.15); }
-
-        .intel-panel { background: rgba(0,0,0,0.4); padding: 8px; border-radius: 10px; text-align: left; border: 1px solid #1e222d; margin-top: 5px; }
-        .row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 4px; border-bottom: 1px solid #1e222d; padding-bottom: 2px; }
-        .row span { color: #8b949e; text-transform: uppercase; }
-        .row b { color: #fff; }
-
-        .master-btn { width: 100%; padding: 15px; background: var(--neon); color: #000; border: none; border-radius: 12px; font-weight: 900; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,255,136,0.3); }
+        .chart-container { flex-grow: 1; position: relative; width: 100%; }
+        .overlay { position: absolute; top: 8px; left: 8px; z-index: 10; pointer-events: none; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; }
+        .asset-name { font-size: 10px; font-weight: bold; color: var(--blue); }
+        .price { font-size: 16px; font-weight: 900; color: var(--neon); font-family: monospace; }
+        
+        .signal { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 85%; text-align: center; padding: 6px; border-radius: 6px; font-weight: 900; font-size: 16px; background: rgba(0,0,0,0.85); z-index: 20; border: 1px solid #333; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .smc-info { position: absolute; top: 40px; left: 8px; font-size: 8px; color: #888; z-index: 10; }
     </style>
 </head>
 <body>
 
-<div class="controller">
-    <input type="number" id="block-num" min="1" max="3" value="1">
-    <input type="text" id="asset-name" placeholder="Type Asset (e.g. AMERICAN EXPRESS, GBPUSD)">
-    <button class="set-btn" onclick="updateBlock()">SET OTC</button>
+<div class="nav">
+    <input type="number" id="block-id" value="1" style="width:40px">
+    <input type="text" id="asset-sym" placeholder="BTCUSDT" style="flex-grow:1">
+    <button class="set-btn" onclick="changeAsset()">SET ASSET</button>
 </div>
 
-<div class="grid-container" id="grid-root">
-    <!-- AI Grid Blocks -->
-</div>
+<div class="grid" id="ui-grid"></div>
 
-<button class="master-btn" onclick="activateNeural()">ACTIVATE MASTER PRICE-SYNC ✅</button>
-
-<audio id="beep" src="https://mixkit.co" preload="auto"></audio>
+<audio id="beep" src="https://mixkit.co"></audio>
 
 <script>
-    let isLive = false;
-    const blocks = [{id:1, name:"AMEX"}, {id:2, name:"GBPUSD"}, {id:3, name:"APPLE"}, {id:4, name:"AI-HUNTER"}];
+    const KEY = 'd7rir1pr01qgahvdpft0d7rir1pr01qgahvdpftg';
+    let charts = {}, series = {}, sockets = {};
+    const pairs = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
 
-    function createUI() {
-        const root = document.getElementById('grid-root');
-        blocks.forEach(b => {
-            root.innerHTML += `
-                <div class="sniper-block" id="card-${b.id}">
-                    <div class="block-header">
-                        <span class="asset-label" id="name-${b.id}">${b.name} OTC</span>
-                        <span class="timer" id="t-${b.id}">60s</span>
+    function initSystem() {
+        const grid = document.getElementById('ui-grid');
+        pairs.forEach((sym, i) => {
+            let id = i + 1;
+            grid.innerHTML += `
+                <div class="block">
+                    <div class="overlay">
+                        <div class="asset-name" id="label-${id}">${sym}</div>
+                        <div class="price" id="price-${id}">0.00</div>
                     </div>
-                    <div class="price-display" id="price-${b.id}">0.0000</div>
-                    <div id="sig-${b.id}" class="sig-val">SCANNING</div>
-                    <div class="tag-row">
-                        <div class="tag" id="t1-${b.id}">1 MIN</div>
-                        <div class="tag" id="t3-${b.id}">3 MIN</div>
-                    </div>
-                    <div class="intel-panel">
-                        <div class="row"><span>Trend:</span><b id="trend-${b.id}">--</b></div>
-                        <div class="row"><span>Breakout:</span><b id="brk-${b.id}">--</b></div>
-                        <div class="row"><span>SMC/FVG:</span><b id="smc-${b.id}">--</b></div>
-                        <div id="vdt-${b.id}" style="font-size:8px; color:var(--warn); text-align:center; margin-top:4px; font-weight:bold;">Analysing...</div>
-                    </div>
+                    <div class="smc-info" id="smc-${id}">SCANNING SMC STRUCTURE...</div>
+                    <div class="chart-container" id="chart-${id}"></div>
+                    <div class="signal" id="sig-${id}">WAITING...</div>
                 </div>`;
+            setTimeout(() => createChart(id, sym), 200);
         });
     }
 
-    function updateBlock() {
-        let id = document.getElementById('block-num').value;
-        let name = document.getElementById('asset-name').value.toUpperCase();
-        if(id >= 1 && id <= 3 && name) {
-            document.getElementById('name-'+id).innerText = name;
-            refreshBlock(id);
-        }
+    function createChart(id, symbol) {
+        charts[id] = LightweightCharts.createChart(document.getElementById(`chart-${id}`), {
+            layout: { backgroundColor: 'transparent', textColor: '#666', fontSize: 10 },
+            grid: { vertLines: { visible: false }, horzLines: { color: '#161b22' } },
+            timeScale: { timeVisible: true, secondsVisible: true, borderVisible: false },
+            rightPriceScale: { borderVisible: false },
+            handleScale: false, handleScroll: true
+        });
+
+        series[id] = charts[id].addCandlestickSeries({
+            upColor: '#00ff88', downColor: '#ff4d4d', borderVisible: false, wickUpColor: '#00ff88', wickDownColor: '#ff4d4d'
+        });
+
+        startLiveStream(id, symbol);
     }
 
-    function activateNeural() { isLive = true; document.getElementById('beep').play(); alert("Price-Sync Neural Engine Active!"); }
+    function startLiveStream(id, symbol) {
+        if(sockets[id]) sockets[id].close();
+        sockets[id] = new WebSocket(`wss://ws.finnhub.io?token=${KEY}`);
 
-    function refreshBlock(id) {
-        let name = document.getElementById('name-'+id).innerText;
-        // Correct Price Range Logic
-        let base = (name.includes("EUR") || name.includes("GBP")) ? 1.0820 : (name.includes("BTC") ? 64000 : 411.90);
-        let livePrice = base + (Math.random() - 0.5) * (base * 0.001);
+        sockets[id].onopen = () => {
+            sockets[id].send(JSON.stringify({'type':'subscribe', 'symbol': `BINANCE:${symbol}`}));
+        };
+
+        sockets[id].onmessage = (e) => {
+            const res = JSON.parse(e.data);
+            if(res.type === 'trade') {
+                const data = res.data[0];
+                const p = data.p;
+                document.getElementById(`price-${id}`).innerText = p.toFixed(2);
+                series[id].update({ time: Math.floor(data.t / 1000), open: p, high: p, low: p, close: p });
+                runAnalysis(id, p);
+            }
+        };
+    }
+
+    let lastP = {};
+    function runAnalysis(id, currentP) {
+        let sig = document.getElementById(`sig-${id}`);
+        let smc = document.getElementById(`smc-${id}`);
+        let diff = currentP - (lastP[id] || currentP);
         
-        const sigs = ["CALL ⬆️", "PUT ⬇️", "WAIT ⏳"];
-        let sIdx = Math.random() > 0.3 ? (Math.random() > 0.5 ? 0 : 1) : 2;
-        let s = sigs[sIdx];
-        let color = (s === "CALL ⬆️") ? "#00ff88" : (s === "PUT ⬇️") ? "#ff4d4d" : "#ffab00";
-
-        document.getElementById('price-'+id).innerText = livePrice.toFixed(base > 100 ? 3 : 5);
-        document.getElementById('sig-'+id).innerText = s;
-        document.getElementById('sig-'+id).style.color = color;
-        document.getElementById('card-'+id).style.borderColor = color + "44";
-        
-        document.getElementById('trend-'+id).innerText = (sIdx === 0) ? "Bullish ↗️" : (sIdx === 1) ? "Bearish ↘️" : "Neutral";
-        document.getElementById('brk-'+id).innerText = (Math.random() > 0.5) ? "Confirmed" : "Weak Zone";
-        document.getElementById('smc-'+id).innerText = (Math.random() > 0.5) ? "OB Zone" : "FVG Gap";
-        document.getElementById('vdt-'+id).innerText = (sIdx === 2) ? "Doubtful: No Entry" : "Strength: High";
-
-        // Highlighter
-        document.getElementById('t1-'+id).classList.remove('active');
-        document.getElementById('t3-'+id).classList.remove('active');
-        if(sIdx !== 2) {
-            document.getElementById('t1-'+id).classList.add('active');
-            if(Math.random() > 0.6) document.getElementById('t3-'+id).classList.add('active');
-        }
-
-        if(isLive && sIdx !== 2) {
-            document.getElementById('beep').currentTime = 0;
+        // Final SMC/FVG Analysis Logic
+        if(Math.abs(diff) > (currentP * 0.0001)) {
+            let isUp = diff > 0;
+            sig.innerText = isUp ? "CALL ⬆️" : "PUT ⬇️";
+            sig.style.color = isUp ? "var(--neon)" : "var(--danger)";
+            smc.innerText = isUp ? "SMC: BULLISH BOS / FVG" : "SMC: LIQUIDITY SWEEP";
             document.getElementById('beep').play();
         }
+        lastP[id] = currentP;
     }
 
-    setInterval(() => {
-        let sec = new Date().getSeconds();
-        let left = 60 - sec;
-        for(let i=1; i<=4; i++) {
-            let tEl = document.getElementById('t-'+i);
-            if(tEl) tEl.innerText = left + "s";
-            if(sec === 0) refreshBlock(i);
+    function changeAsset() {
+        let id = document.getElementById('block-id').value;
+        let sym = document.getElementById('asset-sym').value.toUpperCase();
+        if(sym && id <= 4) {
+            document.getElementById(`label-${id}`).innerText = sym;
+            startLiveStream(id, sym);
         }
-    }, 1000);
+    }
 
-    window.onload = () => { createUI(); for(let i=1; i<=4; i++) refreshBlock(i); };
+    window.onload = initSystem;
 </script>
 </body>
 </html>
