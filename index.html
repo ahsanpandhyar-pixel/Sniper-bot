@@ -3,70 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI SNIPER v34.0 | FIX</title>
-    <script type="text/javascript" src="https://tradingview.com"></script>
+    <title>AI SNIPER v34.0 | FIXED</title>
     <style>
-        :root { --neon: #00ff88; --bg: #05070b; --card: #0d1117; --danger: #ff4d4d; --blue: #00d2ff; }
-        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; overflow-x: hidden; }
+        :root { --neon: #00ff88; --bg: #000; --card: #0d1117; --danger: #ff4d4d; }
+        body { background: var(--bg); color: #e1e1e1; font-family: sans-serif; margin: 0; overflow: hidden; }
         .nav { background: var(--card); padding: 8px; display: flex; gap: 5px; border-bottom: 2px solid var(--neon); align-items: center; }
-        input { background: #000; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; flex-grow: 1; outline: none; }
+        input { background: #111; border: 1px solid #333; color: var(--neon); padding: 8px; border-radius: 5px; flex-grow: 1; outline: none; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; height: calc(100vh - 60px); }
-        .block { background: var(--card); border-radius: 8px; position: relative; border: 1px solid #1a1f26; display: flex; flex-direction: column; overflow: hidden; }
-        .chart-box { flex-grow: 1; width: 100%; min-height: 250px; background: #000; }
-        .overlay { position: absolute; top: 5px; left: 5px; z-index: 10; background: rgba(0,0,0,0.7); padding: 4px; border-radius: 3px; pointer-events: none; }
-        .price { font-size: 14px; font-weight: bold; color: var(--neon); }
-        .sig-banner { background: rgba(0,0,0,0.8); text-align: center; padding: 8px; font-weight: 900; font-size: 14px; border-top: 1px solid #222; }
+        .block { background: var(--card); border-radius: 8px; position: relative; border: 1px solid #1a1f26; overflow: hidden; display: flex; flex-direction: column; }
+        iframe { flex-grow: 1; border: none; width: 100%; }
+        .overlay { position: absolute; top: 5px; left: 5px; z-index: 10; background: rgba(0,0,0,0.8); padding: 4px; border-radius: 3px; border: 1px solid #333; pointer-events: none; }
+        .price { font-size: 12px; font-weight: bold; color: var(--neon); font-family: monospace; }
+        .sig-banner { background: #0d1117; text-align: center; padding: 5px; font-weight: 900; font-size: 12px; border-top: 1px solid #222; }
     </style>
 </head>
-<body>
+<body onload="initCharts()">
 
 <div class="nav">
     <input type="number" id="b-id" value="1" style="max-width:35px">
-    <input type="text" id="b-sym" placeholder="e.g. BTCUSDT">
+    <input type="text" id="b-sym" placeholder="BTCUSDT">
     <button onclick="updateAsset()" style="background:var(--neon); border:none; padding:8px 12px; border-radius:5px; font-weight:bold;">SET</button>
 </div>
 
-<div class="grid" id="main-grid"></div>
+<div class="grid" id="main-grid">
+    <!-- 4 Blocks -->
+    <div class="block" id="box-1"></div>
+    <div class="block" id="box-2"></div>
+    <div class="block" id="box-3"></div>
+    <div class="block" id="box-4"></div>
+</div>
 
 <script>
     const KEY = 'd7rir1pr01qgahvdpft0d7rir1pr01qgahvdpftg';
     const pairs = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
 
-    function init() {
-        const container = document.getElementById('main-grid');
-        pairs.forEach((sym, i) => {
-            let id = i + 1;
-            container.innerHTML += `
-                <div class="block">
-                    <div class="overlay">
-                        <div style="font-size:8px; color:var(--blue);">${sym}</div>
-                        <div class="price" id="p-${id}">0.00</div>
-                    </div>
-                    <div class="chart-box" id="chart-${id}"></div>
-                    <div class="sig-banner" id="sig-${id}">SCANNING...</div>
-                </div>`;
-            loadTV(id, sym);
-            syncPrice(id, sym);
-        });
+    function initCharts() {
+        pairs.forEach((sym, i) => renderBlock(i + 1, sym));
     }
 
-    function loadTV(id, sym) {
-        new TradingView.widget({
-            "autosize": true,
-            "symbol": "BINANCE:" + sym,
-            "interval": "1",
-            "timezone": "Asia/Karachi",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "container_id": "chart-" + id,
-            "hide_top_toolbar": true,
-            "hide_legend": true,
-            "save_image": false
-        });
+    function renderBlock(id, sym) {
+        const container = document.getElementById(`box-${id}`);
+        // TradingView IFrame - Sab se stable tareeqa
+        const chartUrl = `https://tradingview.com{sym}&interval=1&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FKarachi`;
+        
+        container.innerHTML = `
+            <div class="overlay">
+                <div style="font-size:8px; color:#00d2ff; font-weight:bold;">${sym}</div>
+                <div class="price" id="p-${id}">LOADING...</div>
+            </div>
+            <iframe src="${chartUrl}"></iframe>
+            <div class="sig-banner" id="sig-${id}">SCANNING MARKET...</div>
+        `;
+        startPriceSync(id, sym);
     }
 
-    async function syncPrice(id, sym) {
+    async function startPriceSync(id, sym) {
         setInterval(async () => {
             try {
                 const res = await fetch(`https://finnhub.io{sym}&token=${KEY}`);
@@ -75,9 +66,9 @@
                     document.getElementById(`p-${id}`).innerText = data.c.toFixed(2);
                     let sig = document.getElementById(`sig-${id}`);
                     if (data.c > data.pc) {
-                        sig.innerText = "CALL ⬆️"; sig.style.color = "var(--neon)";
+                        sig.innerText = "CALL ⬆️"; sig.style.color = "#00ff88";
                     } else {
-                        sig.innerText = "PUT ⬇️"; sig.style.color = "var(--danger)";
+                        sig.innerText = "PUT ⬇️"; sig.style.color = "#ff4d4d";
                     }
                 }
             } catch (e) {}
@@ -87,14 +78,8 @@
     function updateAsset() {
         let id = document.getElementById('b-id').value;
         let sym = document.getElementById('b-sym').value.toUpperCase();
-        if(sym) {
-            document.getElementById(`chart-${id}`).innerHTML = '';
-            loadTV(id, sym);
-            syncPrice(id, sym);
-        }
+        if(sym && id <= 4) renderBlock(id, sym);
     }
-
-    window.onload = init;
 </script>
 </body>
 </html>
